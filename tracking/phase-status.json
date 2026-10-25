@@ -1,0 +1,1019 @@
+{
+    "schemaVersion":  1,
+    "updatedAt":  "2026-10-25",
+    "phases":  [
+                   {
+                       "id":  "P0",
+                       "name":  "Feasibility and toolchain",
+                       "checks":  [
+                                      {
+                                          "id":  "P0-001",
+                                          "feature":  "Architecture, implementation plan, and command contract exist",
+                                          "required":  true,
+                                          "status":  "passed",
+                                          "verification":  "Review architecture and implementation documents and parse the command schema as JSON.",
+                                          "evidence":  [
+                                                           "docs/ARCHITECTURE.md",
+                                                           "docs/IMPLEMENTATION_PLAN.md",
+                                                           "contracts/command-envelope.schema.json",
+                                                           "2026-10-23: command schema parsed successfully with Node.js"
+                                                       ],
+                                          "notes":  "Initial repository baseline completed."
+                                      },
+                                      {
+                                          "id":  "P0-002",
+                                          "feature":  "Go and Android build toolchains are installed and reproducible",
+                                          "required":  true,
+                                          "status":  "passed",
+                                          "verification":  "Run Go tests and assemble a minimal Android debug APK from a clean shell.",
+                                          "evidence":  [
+                                                           "docs/TOOLCHAIN.md",
+                                                           "scripts/bootstrap-toolchain.ps1",
+                                                           "2026-10-23: verified Go 1.27.3 at C:/Program Files/Go/bin/go.exe",
+                                                           "2026-10-23: verified Android Studio at C:/Program Files/Android/Android Studio/bin/studio64.exe",
+                                                           "2026-10-23: Go server test suite passed using project-local build caches",
+                                                           "2026-10-23: verified Android SDK Platform 37.0 and Build Tools 36.0.0",
+                                                           "2026-10-23: verified ADB 37.0.1, emulator 37.2.12, and Android 37.0 Google Play x86_64 system image",
+                                                           "android/gradlew.bat",
+                                                           "android/gradle/wrapper/gradle-wrapper.jar",
+                                                           "2026-10-23: Gradle 9.6.0 distribution and wrapper JAR matched official SHA-256 checksums",
+                                                           "2026-10-23: Gradle 9.6.0 installed and verified at C:/Gradle/gradle-9.6.0; persistent PATH update remains manual because registry writes are blocked in the managed environment",
+                                                           "2026-10-23: parent and child debug APK build completed successfully from project-local Gradle cache"
+                                                       ],
+                                          "notes":  "Required Go and Android toolchains are installed and verified. Android SDK Command-line Tools remain optional for later sdkmanager automation."
+                                      },
+                                      {
+                                          "id":  "P0-003",
+                                          "feature":  "Redmi can be provisioned as Device Owner after factory reset",
+                                          "required":  true,
+                                          "status":  "blocked",
+                                          "verification":  "Provision the physical Redmi and confirm DevicePolicyManager.isDeviceOwnerApp returns true after reboot.",
+                                          "evidence":  [
+                                                           "logs/build/2026-10-24.txt",
+                                                           "2026-10-25: logs/build/2026-10-25.txt; current disposable-signed release setup export, independent QR decode, payload/hash binding and stale-sequence/modified-APK refusals pass. Software evidence only; physical provisioning remains unverified.",
+                                                           "scripts/test-managed-setup-roundtrip.ps1",
+                                                           "docs/MANAGED_SETUP.md"
+                                                       ],
+                                          "notes":  "2026-10-24: both existing ADB daemons (5037 and 5038) rechecked: zero authorized physical devices. Physical Redmi Device Owner/reboot proof cannot proceed. Emulator proofs are recorded separately and do not satisfy this gate. Connect the designated test Redmi before continuing provisioning; factory reset requires the explicit device provisioning procedure."
+                                      },
+                                      {
+                                          "id":  "P0-004",
+                                          "feature":  "Immediate secure device lock works",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Execute lockNow on the physical Redmi while unlocked and confirm strong authentication is required.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/MainActivity.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/commands/CommandSync.kt",
+                                                           "2026-10-23: child debug APK builds; physical strong-auth lock proof pending"
+                                                       ],
+                                          "notes":  "Device Owner lock test and authenticated command execution exist. Physical Redmi lock and strong-auth verification pending."
+                                      },
+                                      {
+                                          "id":  "P0-005",
+                                          "feature":  "Selected application can be suspended and restored",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Suspend a non-critical test application, verify it cannot launch, restore it, and verify it launches.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/policy/PolicyEnforcer.kt",
+                                                           "scripts/test-package-policy.ps1",
+                                                           "scripts/test-android-package-policy.ps1",
+                                                           "docs/EMULATOR_TESTS.md",
+                                                           "logs/build/2026-10-24.txt",
+                                                           "docs/DEVICE_POLICIES.md"
+                                                       ],
+                                          "notes":  "Production PolicyEnforcer and DPM adapter now verify suspension, same-policy reapplication, allowlist restoration and management-target rejection on an Android 37 Device Owner emulator. Fixture cleanup restores OS and baseline preferences. Physical Redmi app launch/suspend/restore evidence remains pending."
+                                      },
+                                      {
+                                          "id":  "P0-006",
+                                          "feature":  "Local VPN blocks a selected app but preserves management connectivity",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Block a test app, verify its network fails, and verify child-to-server HTTPS still succeeds.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/policy/InternetPauseVpn.kt",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/policy/InternetPausePlan.java",
+                                                           "scripts/test-package-policy.ps1",
+                                                           "docs/DEVICE_POLICIES.md"
+                                                       ],
+                                          "notes":  "Local IPv4/IPv6 explicit-target discard VPN prototype implemented with visible consent/notification and management/system/critical-app exclusion. Plan checks and APK build passed; real network/control-channel proof pending."
+                                      },
+                                      {
+                                          "id":  "P0-007",
+                                          "feature":  "Default dialer receives and renders a real incoming SIM call",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Assign the dialer role and place a real incoming call on Android 13 and Android 14+ targets.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/ManagedInCallService.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/CallActivity.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/DialActivity.kt",
+                                                           "android/child-app/src/main/AndroidManifest.xml",
+                                                           "docs/CALL_FEASIBILITY.md",
+                                                           "2026-10-23: both debug APKs built; ADB reports no attached devices"
+                                                       ],
+                                          "notes":  "Explicit role/permission setup, ACTION_DIAL, Telecom service and visible incoming/ongoing UI implemented. Real incoming SIM, ringing and locked-screen proof pending."
+                                      },
+                                      {
+                                          "id":  "P0-008",
+                                          "feature":  "Remote command answers, rejects, and ends the correct call",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Run local simulated remote commands against a real ringing call and verify exact state transitions.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/java/com/appcontrol/child/calls/CallActionGate.java",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/CallRegistry.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/commands/CommandSync.kt",
+                                                           "android/parent-app/src/main/kotlin/com/appcontrol/parent/ParentActivity.kt",
+                                                           "server/internal/control/calls.go",
+                                                           "server/internal/httpapi/device_status.go",
+                                                           "server/internal/storage/migrations/0017_remote_call_snapshots.sql",
+                                                           "scripts/test-call-actions.ps1",
+                                                           "docs/REMOTE_CALL_API.md",
+                                                           "docs/CALL_FEASIBILITY.md"
+                                                       ],
+                                          "notes":  "Foreground parent call controls, authorized opaque call snapshots, exact-call queue validation, and observed-result child execution are implemented; focused JVM/Go checks and debug compilation pass. No real SIM/enrolled-device execution evidence; hardware acceptance remains open."
+                                      },
+                                      {
+                                          "id":  "P0-009",
+                                          "feature":  "Speaker routing works on Android 13 and Android 14+",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Answer a call and verify the legacy and endpoint-based speaker-routing paths on physical devices.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/ManagedInCallService.kt",
+                                                           "docs/CALL_FEASIBILITY.md",
+                                                           "2026-10-23: Android 13 legacy and Android 14+ endpoint paths compile"
+                                                       ],
+                                          "notes":  "Speaker/phone route requests and observed callbacks implemented; actual sound output on both API paths remains untested."
+                                      },
+                                      {
+                                          "id":  "P0-010",
+                                          "feature":  "FCM wake-up triggers authenticated command synchronization",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Send an opaque FCM sync hint and verify the child fetches the command from our backend without sensitive FCM payload data.",
+                                          "evidence":  [
+                                                           "docs/WAKEUP_PROVIDER.md",
+                                                           "server/internal/wakeup/oauth_test.go",
+                                                           "server/internal/httpapi/wakeup_registration_test.go",
+                                                           "android/child-app/src/firebase/AndroidManifest.xml",
+                                                           "android/child-app/src/firebase/kotlin/com/appcontrol/child/wakeup/FirebaseApplication.kt",
+                                                           "android/child-app/src/firebase/kotlin/com/appcontrol/child/wakeup/FirebaseWakeupService.kt",
+                                                           "android/child-app/src/firebase/kotlin/com/appcontrol/child/wakeup/WakeupRegistration.kt",
+                                                           "2026-10-24: polling debug and androidTest APKs build, release Kotlin compiles with synthetic trust pins, and optional Firebase variant configuration validates; logs/build/2026-10-24.txt",
+                                                           "2026-10-24: assembleFcmDebug and assembleFcmRelease succeed with fixture project properties; both APK manifests contain Firebase application and messaging service; logs/build/2026-10-24.txt"
+                                                       ],
+                                          "notes":  "Opt-in Firebase Android application, strict hint callback, bounded token retrieval and authenticated registration are implemented; ordinary debug/release variants remain Firebase-free. Both Firebase variants now compile and package using fixture properties. No actual test-project configuration was available; Firebase project registration, live delivery, and physical-device authenticated-sync evidence remain pending."
+                                      },
+                                      {
+                                          "id":  "P0-011",
+                                          "feature":  "Emergency calling works through the Android-required path",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Use the approved non-emergency test procedure for the target carrier/device and verify fallback behavior without placing an unnecessary emergency call.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/DialActivity.kt",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/calls/CallActionGate.java",
+                                                           "scripts/test-call-actions.ps1",
+                                                           "docs/CALL_FEASIBILITY.md",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/calls/EmergencyCallGuard.java",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/calls/EmergencyCallGuardChecks.java"
+                                                       ],
+                                          "notes":  "Telecom.placeCall and system-phone access retained; own UI avoids emergency/unknown-classification overlay and remote gate rejects protected calls. Approved carrier/device emergency-path evidence is still required. No actual emergency calls placed. Fixed missing/non-telephone handles failing open in internal remote classification; helper/gate regressions pass and local user control is retained. Actual emergency calling remains unverified."
+                                      },
+                                      {
+                                          "id":  "P0-012",
+                                          "feature":  "Build commands and outputs are recorded in sanitized text logs",
+                                          "required":  true,
+                                          "status":  "passed",
+                                          "verification":  "Run successful and failing commands through the wrapper, confirm output and exit codes are recorded, and verify secret-pattern redaction.",
+                                          "evidence":  [
+                                                           "docs/BUILD_LOG_POLICY.md",
+                                                           "scripts/run-logged.ps1",
+                                                           "scripts/write-build-log.ps1",
+                                                           "scripts/verify-build-log.ps1",
+                                                           "logs/build/2026-10-23.txt",
+                                                           "2026-10-23: verifier passed with successful, failing, and redaction-probe entries"
+                                                       ],
+                                          "notes":  "Automatic dated text logging and redaction verification are active."
+                                      },
+                                      {
+                                          "id":  "P0-013",
+                                          "feature":  "Parent and child Android project baseline builds reproducibly",
+                                          "required":  true,
+                                          "status":  "passed",
+                                          "verification":  "Assemble both debug APKs from a clean project-local Gradle cache and inspect their manifests.",
+                                          "evidence":  [
+                                                           "android/settings.gradle.kts",
+                                                           "android/parent-app",
+                                                           "android/child-app",
+                                                           "android/README.md",
+                                                           "android/parent-app/build/outputs/apk/debug/parent-app-debug.apk",
+                                                           "android/child-app/build/outputs/apk/debug/child-app-debug.apk",
+                                                           "2026-10-23: both APKs assembled successfully and passed package, SDK, signature, and manifest inspection"
+                                                       ],
+                                          "notes":  "Dependency-light Kotlin parent and child modules compile with AGP 9.4.0 and Gradle 9.6.0. The child APK declares the Device Admin receiver and force-lock policy."
+                                      }
+                                  ]
+                   },
+                   {
+                       "id":  "P1",
+                       "name":  "Secure foundation",
+                       "checks":  [
+                                      {
+                                          "id":  "P1-001",
+                                          "feature":  "Server configuration, health checks, logs, and graceful shutdown",
+                                          "required":  true,
+                                          "status":  "passed",
+                                          "verification":  "Run automated server tests and stop a live server while a request is active.",
+                                          "evidence":  [
+                                                           "server/cmd/control-server/main.go",
+                                                           "server/internal/config/config.go",
+                                                           "server/internal/config/config_test.go",
+                                                           "server/internal/httpapi/router_test.go",
+                                                           "server/internal/serve/serve.go",
+                                                           "server/internal/serve/serve_test.go",
+                                                           "server/README.md",
+                                                           "2026-10-23: go test ./... passed for configuration, HTTP API, and live graceful-shutdown behavior",
+                                                           "2026-10-23: go vet ./... passed with empty output recorded successfully"
+                                                       ],
+                                          "notes":  "Configuration is validated, operational endpoints are dependency-aware, structured request logs omit query data, and graceful shutdown drains active requests."
+                                      },
+                                      {
+                                          "id":  "P1-002",
+                                          "feature":  "SQLite migrations, transactions, integrity checks, and restore-tested backups",
+                                          "required":  true,
+                                          "status":  "passed",
+                                          "verification":  "Apply migrations to an empty database, exercise transactions, create a backup, and restore it into a clean instance.",
+                                          "evidence":  [
+                                                           "server/internal/storage/migrations/0001_app_metadata.sql",
+                                                           "server/internal/storage/database.go",
+                                                           "server/internal/storage/migrate.go",
+                                                           "server/internal/storage/transaction.go",
+                                                           "server/internal/storage/integrity.go",
+                                                           "server/internal/storage/backup.go",
+                                                           "server/internal/storage/storage_test.go",
+                                                           "server/go.mod",
+                                                           "server/go.sum",
+                                                           "docs/DEPENDENCIES.md",
+                                                           "2026-10-23: migration rollback/idempotence, transaction rollback/commit, encrypted backup authentication, clean restore, and post-restore integrity tests passed",
+                                                           "2026-10-23: full Go test suite and go vet passed; production server binary built successfully"
+                                                       ],
+                                          "notes":  "SQLite runs locally in WAL mode with bounded connections. Backups use verified VACUUM INTO snapshots and chunked AES-256-GCM; failed authentication never publishes a restore file."
+                                      },
+                                      {
+                                          "id":  "P1-003",
+                                          "feature":  "Parent authentication and rotating session revocation",
+                                          "required":  true,
+                                          "status":  "passed",
+                                          "verification":  "Automated tests cover correct login, incorrect login, rate limiting, refresh rotation, reuse detection, and logout.",
+                                          "evidence":  [
+                                                           "server/internal/storage/migrations/0002_parent_authentication.sql",
+                                                           "server/internal/auth/password.go",
+                                                           "server/internal/auth/service.go",
+                                                           "server/internal/auth/password_test.go",
+                                                           "server/internal/auth/service_test.go",
+                                                           "server/internal/httpapi/auth.go",
+                                                           "server/internal/httpapi/auth_test.go",
+                                                           "2026-10-23: automated tests passed for registration, correct and incorrect login, database-backed rate limiting, token rotation, refresh reuse family revocation, logout, hashed token storage, bounded JSON requests, and secret-free request logs",
+                                                           "2026-10-23: full Go test suite and go vet passed after authentication integration"
+                                                       ],
+                                          "notes":  "Passwords use bounded Argon2id parameters. Opaque access and refresh tokens are stored only as SHA-256 hashes; refresh families have fixed expiry and are revoked on reuse or logout."
+                                      },
+                                      {
+                                          "id":  "P1-004",
+                                          "feature":  "One-time pairing binds a Keystore device key to the correct parent",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Enroll once, reject pairing-code reuse, prove private-key possession, and reject a different account.",
+                                          "evidence":  [
+                                                           "server/internal/pairing/service.go",
+                                                           "server/internal/pairing/service_test.go",
+                                                           "server/internal/httpapi/pairing.go",
+                                                           "server/internal/httpapi/pairing_test.go",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/enrollment/DeviceIdentity.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/enrollment/EnrollmentClient.kt",
+                                                           "docs/PAIRING.md",
+                                                           "docs/EMULATOR_TESTS.md",
+                                                           "android/child-app/src/androidTest/java/com/appcontrol/child/DeviceIdentityProbe.java",
+                                                           "scripts/test-android-identity.ps1",
+                                                           "logs/build/2026-10-24.txt",
+                                                           "2026-10-23: full Go tests and go vet passed after HTTP integration; no ADB devices attached"
+                                                       ],
+                                          "notes":  "Backend pairing and HTTP proof exchange verified. Production Android Keystore generation, API non-exportability and enrollment/authentication signatures now pass on an Android 37 emulator; the same public key survives separate instrumentation invocations and reboot. Android HTTPS enrollment against the server with parent-isolation checks remains unverified. Physical Redmi acceptance remains open."
+                                      },
+                                      {
+                                          "id":  "P1-005",
+                                          "feature":  "Device credential revocation is enforced",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Revoke an enrolled device and verify all subsequent authenticated requests and sockets fail.",
+                                          "evidence":  [
+                                                           "server/internal/storage/migrations/0004_device_sessions.sql",
+                                                           "server/internal/pairing/credentials.go",
+                                                           "server/internal/pairing/credentials_test.go",
+                                                           "server/internal/httpapi/pairing_test.go",
+                                                           "docs/DEVICE_CREDENTIALS.md",
+                                                           "docs/EMULATOR_TESTS.md",
+                                                           "scripts/test-android-identity.ps1",
+                                                           "2026-10-23: full Go tests and go vet passed with signed device authentication and request revocation tests"
+                                                       ],
+                                          "notes":  "Parent-scoped persistent revocation, one-time authentication challenges, and hashed short-lived device sessions implemented. Request rejection verified. Android Keystore authentication-domain signatures verified locally on an Android 37 emulator, including identity persistence after reboot. Android HTTPS authentication/revocation against the server and socket revocation remain pending."
+                                      },
+                                      {
+                                          "id":  "P1-006",
+                                          "feature":  "Security-sensitive actions create immutable audit events",
+                                          "required":  true,
+                                          "status":  "passed",
+                                          "verification":  "Exercise enrollment, login, command, policy, revocation, and recovery flows and inspect their audit records.",
+                                          "evidence":  [
+                                                           "server/internal/storage/migrations/0005_audit_events.sql",
+                                                           "server/internal/audit/events.go",
+                                                           "server/internal/audit/events_test.go",
+                                                           "server/internal/httpapi/audit_test.go",
+                                                           "docs/AUDIT_EVENTS.md",
+                                                           "2026-10-23: full Go tests and go vet passed; focused audit/API tests verified privacy, isolation, immutable history, fail-closed transactions, and encrypted restore; server binary built successfully",
+                                                           "2026-10-23: full Go tests and go vet passed through run-logged.ps1; logs/build/2026-10-23.txt",
+                                                           "server/internal/storage/migrations/0006_recovery_audit.sql",
+                                                           "server/internal/storage/recovery_audit_test.go",
+                                                           "server/internal/httpapi/recovery_test.go",
+                                                           "server/internal/httpapi/recovery_process_test.go",
+                                                           "server/cmd/control-admin/process_recovery_test.go",
+                                                           "scripts/test-recovery-executables.ps1",
+                                                           "docs/SERVER_TRUST_ACCEPTANCE.md",
+                                                           "android/shared/src/androidTest/java/com/appcontrol/transport/ServerTrustInstrumentation.java",
+                                                           "scripts/test-android-server-trust.ps1",
+                                                           "scripts/test-android-trust-runner.ps1",
+                                                           "scripts/test-server-trust-apks.ps1",
+                                                           "logs/build/2026-10-24.txt",
+                                                           "server/internal/storage/migrations/0007_control_intents.sql",
+                                                           "server/internal/control/service_test.go",
+                                                           "server/internal/httpapi/control_test.go",
+                                                           "docs/CONTROL_INTENTS.md",
+                                                           "2026-10-23: complete security lifecycle audit, full Go tests, go vet and server build passed; logs/build/2026-10-23.txt"
+                                                       ],
+                                          "notes":  "Acceptance verified for implemented enrollment, login, lock-command creation, versioned desired-policy update, revocation and database recovery. Audit history is immutable, private, transactional and preserved through restart and restore. Future delivery/execution and new recovery flows must add audit events."
+                                      }
+                                  ]
+                   },
+                   {
+                       "id":  "P2",
+                       "name":  "Reliable command channel",
+                       "checks":  [
+                                      {
+                                          "id":  "P2-001",
+                                          "feature":  "Commands are durable before delivery",
+                                          "required":  true,
+                                          "status":  "passed",
+                                          "verification":  "Terminate the server immediately after command creation, restart it, and verify the command remains queued.",
+                                          "evidence":  [
+                                                           "server/internal/httpapi/durability_test.go",
+                                                           "server/internal/storage/migrations/0007_control_intents.sql",
+                                                           "docs/COMMAND_CHANNEL.md",
+                                                           "2026-10-23: subprocess HTTP server forcibly terminated immediately after command creation; HTTP restart recovered queued command and audit record; logs/build/2026-10-23.txt"
+                                                       ],
+                                          "notes":  "Verified commit-before-delivery durability across abrupt server-process termination, without graceful shutdown or database close."
+                                      },
+                                      {
+                                          "id":  "P2-002",
+                                          "feature":  "FCM contains only opaque synchronization hints",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Inspect generated FCM payloads and assert that commands, call data, tokens, and policies are absent.",
+                                          "evidence":  [
+                                                           "server/internal/wakeup/fcm.go",
+                                                           "server/internal/wakeup/fcm_test.go",
+                                                           "server/internal/control/service_test.go",
+                                                           "docs/WAKEUP_PROVIDER.md",
+                                                           "2026-10-23: full Go tests, go vet and server build passed, including opaque FCM data contract and post-commit provider-failure checks; logs/build/2026-10-23.txt",
+                                                           "server/internal/wakeup/oauth.go",
+                                                           "server/internal/wakeup/oauth_test.go",
+                                                           "server/internal/control/wakeup_tokens_test.go",
+                                                           "server/internal/httpapi/wakeup_registration_test.go",
+                                                           "server/cmd/control-server/wakeup_test.go",
+                                                           "server/internal/storage/migrations/0015_wakeup_registration.sql",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/wakeup/WakeupHint.java",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/wakeup/WakeupHintChecks.java",
+                                                           "scripts/test-wakeup-hints.ps1",
+                                                           "2026-10-24: opaque Android hint validation passed; logs/build/2026-10-24.txt",
+                                                           "2026-10-24: Firebase debug/release APKs assemble with fixture properties; manifest packaging verified; no live Firebase request or device delivery; logs/build/2026-10-24.txt"
+                                                       ],
+                                          "notes":  "Optional server FCM integration provides messaging-only service-account JWT/OAuth, bounded fixed endpoints, serialized memory token caching and device-bound AES-GCM routing storage. Android rejects notifications, extra fields and malformed/noncanonical hints; opaque-hint checks pass. Firebase variants compile/package with fixture values only. Live project IAM, message payload/delivery and device verification remain unverified."
+                                      },
+                                      {
+                                          "id":  "P2-003",
+                                          "feature":  "Authenticated HTTPS fetch and acknowledgement",
+                                          "required":  true,
+                                          "status":  "passed",
+                                          "verification":  "Fetch and acknowledge as the enrolled device; reject another device and unauthenticated requests.",
+                                          "evidence":  [
+                                                           "server/internal/control/delivery.go",
+                                                           "server/internal/control/delivery_test.go",
+                                                           "server/internal/httpapi/delivery_http_test.go",
+                                                           "server/internal/httpapi/transport_tls_test.go",
+                                                           "docs/COMMAND_CHANNEL.md",
+                                                           "2026-10-23: full Go tests and go vet passed with signed enrollment authentication, validated TLS fetch/ack and cross-device/revocation rejection; logs/build/2026-10-23.txt"
+                                                       ],
+                                          "notes":  "Device-session authentication is revalidated inside every fetch/ack transaction; enrolled-device proof exchange and actual HTTPS transport verified. Android physical runtime evidence remains a separate device gate."
+                                      },
+                                      {
+                                          "id":  "P2-004",
+                                          "feature":  "Expiry, retries, and idempotent deduplication work",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Deliver duplicate, delayed, expired, and out-of-order commands and verify one valid execution.",
+                                          "evidence":  [
+                                                           "server/internal/control/delivery_test.go",
+                                                           "server/internal/control/service_test.go",
+                                                           "server/internal/storage/migrations/0009_command_idempotency.sql",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/commands/CommandSync.kt",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/commands/CommandExecutor.java",
+                                                           "scripts/test-command-journal.ps1",
+                                                           "2026-10-23: server retry/expiry/concurrency tests, child JVM journal failure checks and both debug APK builds passed; logs/build/2026-10-23.txt"
+                                                       ],
+                                          "notes":  "Server delivery retries, terminal acknowledgement deduplication, expiry and parent creation idempotency implemented. Child reserves before action and reuses stored results; interrupted outcomes are not repeated. Real Android force-stop/reboot and out-of-order physical execution evidence pending; ADB has no attached devices."
+                                      },
+                                      {
+                                          "id":  "P2-005",
+                                          "feature":  "Offline policy reconciliation converges to the latest version",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Change policies while offline, reconnect, and verify only the latest desired state remains active.",
+                                          "evidence":  [
+                                                           "server/internal/control/policy_reports.go",
+                                                           "server/internal/control/policy_reports_test.go",
+                                                           "server/internal/control/inventory_test.go",
+                                                           "server/internal/httpapi/transport_tls_test.go",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/policy/PolicyEnforcer.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/sync/SyncJobService.kt",
+                                                           "scripts/test-package-policy.ps1",
+                                                           "docs/DEVICE_POLICIES.md",
+                                                           "2026-10-23: full Go tests/vet, JVM policy checks and debug APK builds passed; physical reboot/offline convergence pending"
+                                                       ],
+                                          "notes":  "Latest desired snapshots, persisted offline app-restriction ledger, background/boot reconciliation and distinct versioned child reports implemented. Stale reports conflict and report/inventory audits survive encrypted restore. Actual Redmi reboot/offline/VPN behavior remains unverified; ADB shows no devices."
+                                      },
+                                      {
+                                          "id":  "P2-006",
+                                          "feature":  "Parent state reflects child acknowledgement rather than send attempt",
+                                          "required":  true,
+                                          "status":  "passed",
+                                          "verification":  "Interrupt delivery and verify the parent shows pending until an actual child result arrives.",
+                                          "evidence":  [
+                                                           "server/internal/httpapi/transport_tls_test.go",
+                                                           "server/internal/httpapi/delivery_http_test.go",
+                                                           "server/internal/control/delivery_test.go",
+                                                           "2026-10-23: interrupted response remained nonterminal, command redelivered, success appeared only after authenticated device acknowledgement; logs/build/2026-10-23.txt"
+                                                       ],
+                                          "notes":  "Parent command status remains queued/delivered until a device result or expiry. Failed HTTP delivery never reports success, and terminal results cannot be changed by duplicate/conflicting acknowledgement."
+                                      }
+                                  ]
+                   },
+                   {
+                       "id":  "P3",
+                       "name":  "Device controls",
+                       "checks":  [
+                                      {
+                                          "id":  "P3-001",
+                                          "feature":  "Lock Device works from the parent and preserves calls/recovery",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Lock in idle and active-call states; verify acknowledgement, strong authentication, and recovery.",
+                                          "evidence":  [
+                                                           "server/internal/control/delivery_test.go",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/commands/CommandExecutor.java",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/commands/CommandSync.kt"
+                                                       ],
+                                          "notes":  "Parent HTTP lock queue, device fetch/ack and journaled Device Owner execution implemented. Idle/active-call, strong-auth and recovery matrix require physical device."
+                                      },
+                                      {
+                                          "id":  "P3-002",
+                                          "feature":  "Selected applications are blocked and restored",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Block and unblock representative applications and verify package state after reboot.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/java/com/appcontrol/child/policy/PackagePolicyEngine.java",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/policy/PolicyEnforcer.kt",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/policy/PackagePolicyChecks.java",
+                                                           "android/child-app/src/androidTest/java/com/appcontrol/child/PackagePolicyProbe.java",
+                                                           "android/policy-fixture/build.gradle.kts",
+                                                           "scripts/test-android-package-policy.ps1",
+                                                           "docs/EMULATOR_TESTS.md",
+                                                           "logs/build/2026-10-24.txt",
+                                                           "docs/DEVICE_POLICIES.md"
+                                                       ],
+                                          "notes":  "Production Android 37 Device Owner suspension, allowlist restoration, protected-target rejection and cleanup pass. An actual emulator reboot verifies the boot receiver/enforcer re-suspends a deliberately released fixture from cached policy/ledger, with a newer boot marker, followed by successful restoration. Physical Redmi launch/state and enrolled end-to-end acceptance remain open."
+                                      },
+                                      {
+                                          "id":  "P3-003",
+                                          "feature":  "Critical packages cannot be selected for blocking",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Attempt to block Telecom, System UI, management, emergency, permission, and recovery packages through API and UI.",
+                                          "evidence":  [
+                                                           "server/internal/storage/migrations/0011_app_inventory.sql",
+                                                           "server/internal/control/inventory.go",
+                                                           "server/internal/control/inventory_test.go",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/policy/AppInventory.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/policy/PolicyEnforcer.kt",
+                                                           "docs/DEVICE_POLICIES.md"
+                                                       ],
+                                          "notes":  "Owner-only inventory, system/fixed-namespace coercion and protected/unknown-target API rejection implemented. Child protects system/updated-system, default roles, admins, keyboard/accessibility and VPN packages. Automated checks pass; Redmi-specific critical package and UI acceptance remains open."
+                                      },
+                                      {
+                                          "id":  "P3-004",
+                                          "feature":  "Internet pause blocks managed apps but preserves the control plane",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Pause internet, verify managed app traffic fails, and then remotely restore internet through the preserved channel.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/policy/InternetPauseVpn.kt",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/policy/InternetPausePlan.java",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/policy/InternetPauseChecks.java",
+                                                           "docs/DEVICE_POLICIES.md",
+                                                           "2026-10-23: JVM target invariants and both APK builds passed; ADB has no attached devices"
+                                                       ],
+                                          "notes":  "Consent-based visible discard VPN targets only non-critical user-installed apps, never empty/global targets; remote resume closes our interface. Role/package changes refresh targets and failed activation yields partial report. Always-on/lockdown disabled. Real Wi-Fi/cellular/IPv6/DNS, call/control-plane preservation and recovery verification pending."
+                                      },
+                                      {
+                                          "id":  "P3-005",
+                                          "feature":  "Schedules and always-allowed applications work offline",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Disconnect the device and cross multiple schedule boundaries while checking local enforcement and exceptions.",
+                                          "evidence":  [
+                                                           "server/internal/storage/migrations/0012_policy_schedules.sql",
+                                                           "server/internal/control/schedules.go",
+                                                           "server/internal/control/schedules_test.go",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/policy/ScheduledPolicy.java",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/policy/ScheduleAlarm.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/sync/PolicyJobService.kt",
+                                                           "contracts/schedule-vectors.tsv",
+                                                           "contracts/policy.schema.json",
+                                                           "docs/OFFLINE_SCHEDULES.md",
+                                                           "scripts/test-android-package-policy.ps1",
+                                                           "docs/EMULATOR_TESTS.md",
+                                                           "2026-10-23: Go/JVM shared vectors, HTTPS capability/state-report tests, encrypted recovery, full Go tests/vet/server build and both APK builds passed; logs/build/2026-10-23.txt",
+                                                           "scripts/test-android-schedule-boundary.ps1",
+                                                           "android/child-app/src/androidTest/java/com/appcontrol/child/ScheduleBoundaryProbe.java"
+                                                       ],
+                                          "notes":  "Explicit-zone schedules and configurable always-allowed apps implemented offline, with DST-aware boundaries, exact/inexact alarms, offline jobs and clock/boot/update reconciliation. Server/child verify effective-state hashes. Production Android 37 policy enforcement now verifies allowlist precedence restores a suspended disposable app. Offline boundary timing, idle, reboot and Redmi acceptance remain open. Android 37 emulator real exact-alarm start/end boundaries passed, including DPM/PackageManager suspension/restoration and effective-state changes; original permission restored. Physical/idle/inexact acceptance remains open."
+                                      }
+                                  ]
+                   },
+                   {
+                       "id":  "P4",
+                       "name":  "Production call handling",
+                       "checks":  [
+                                      {
+                                          "id":  "P4-001",
+                                          "feature":  "Complete default-dialer role and user interfaces",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Verify dial pad, incoming, active, held, disconnected, and system-fallback flows.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/DialActivity.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/CallActivity.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/CallNotifications.kt",
+                                                           "docs/CALL_FEASIBILITY.md",
+                                                           "scripts/test-android-dialer-role.ps1",
+                                                           "docs/EMULATOR_TESTS.md",
+                                                           "logs/build/2026-10-24.txt",
+                                                           "docs/CALL_CONTACTS.md",
+                                                           "contracts/call-contacts.schema.json",
+                                                           "server/internal/control/call_contacts_test.go",
+                                                           "server/internal/httpapi/call_contacts_test.go"
+                                                       ],
+                                          "notes":  "Feasibility UI covers dialing, incoming/active/held/disconnected calls, DTMF and account selection. Complete replacement-dialer features and real system fallback verification remain unfinished. Android 37 AVD accepts normal ROLE_DIALER qualification; Telecom, both empty ACTION_DIAL paths and keypad UI pass. Original role/Telecom default restored. Actual incoming/active calls and full phone UX remain pending. 2026-10-24: Parent-managed contacts and explicit local Call Parent shortcut implemented; separately versioned API, migration 0019, encrypted enrollment-bound child cache and focused Go authorization/payload/CAS/audit tests pass; parent/child debug builds pass. Contact device delivery/cache/UI/SIM acceptance and outgoing-call restriction policy remain open. See docs/CALL_CONTACTS.md."
+                                      },
+                                      {
+                                          "id":  "P4-002",
+                                          "feature":  "Remote answer validates call identity and expiry",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Attempt valid, stale, duplicate, wrong-call, and post-disconnect answer commands.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/java/com/appcontrol/child/calls/CallActionGate.java",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/calls/CallActionChecks.java",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/calls/RemoteCallPermission.java",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/CallRegistry.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/commands/CommandSync.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/commands/RemoteCallSnapshotSync.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/network/DeviceEnrollmentClient.kt",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/calls/RemoteCallPermission.java",
+                                                           "android/parent-app/src/main/kotlin/com/appcontrol/parent/ParentClient.kt",
+                                                           "server/internal/control/service.go",
+                                                           "server/internal/control/calls.go",
+                                                           "server/internal/control/service_test.go",
+                                                           "server/internal/httpapi/control.go",
+                                                           "server/internal/httpapi/control_test.go",
+                                                           "server/internal/httpapi/device_status.go",
+                                                           "server/internal/httpapi/device_status_test.go",
+                                                           "server/internal/storage/migrations/0017_remote_call_snapshots.sql",
+                                                           "server/internal/storage/migrations/0018_remote_call_snapshot_order.sql",
+                                                           "android/parent-app/src/main/kotlin/com/appcontrol/parent/ParentActivity.kt",
+                                                           "docs/REMOTE_CALL_API.md",
+                                                           "docs/COMMAND_CHANNEL.md",
+                                                           "scripts/test-call-actions.ps1",
+                                                           "docs/CALL_FEASIBILITY.md",
+                                                           "android/telecom-fixture/src/main/java/org/example/appcontroltelecomfixture/FixtureConnectionService.java",
+                                                           "android/child-app/src/androidTest/java/com/appcontrol/child/TelecomFixtureProbe.java",
+                                                           "scripts/test-android-telecom-fixture.ps1",
+                                                           "docs/EMULATOR_TESTS.md"
+                                                       ],
+                                          "notes":  "Foreground parent workflow reads authorized call ID/state/remoteActionsAllowed snapshots and disables actions unless explicitly permitted. Server and child flags default disabled. Telecom callbacks trigger coalesced lightweight reports and a bounded active-call heartbeat; server-issued sequences prevent delayed reports replacing newer state. Full and snapshot sync share a serialized expiry-aware in-memory session. Child rechecks live identity/state and only acknowledges observed results. Focused flag/state/ordering checks pass; child debug compilation passes with the default false flag and explicit opt-in. The earlier CallWatchService setSilent compile blocker was fixed on 24 October. Current parent/child release assembly and vital lint pass on 25 October; both unsigned APKs match across two clean offline builds. See logs/build/2026-10-25.txt. Hardware acceptance remains open."
+                                      },
+                                      {
+                                          "id":  "P4-003",
+                                          "feature":  "Remote reject and end-call commands are state-safe",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Exercise commands in ringing, active, held, and disconnected states.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/java/com/appcontrol/child/calls/CallActionGate.java",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/calls/CallActionChecks.java",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/CallRegistry.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/commands/CommandSync.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/commands/RemoteCallSnapshotSync.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/network/DeviceEnrollmentClient.kt",
+                                                           "android/parent-app/src/main/kotlin/com/appcontrol/parent/ParentClient.kt",
+                                                           "server/internal/control/service.go",
+                                                           "server/internal/control/calls.go",
+                                                           "server/internal/control/service_test.go",
+                                                           "server/internal/httpapi/control.go",
+                                                           "server/internal/httpapi/control_test.go",
+                                                           "server/internal/httpapi/device_status.go",
+                                                           "server/internal/httpapi/device_status_test.go",
+                                                           "server/internal/storage/migrations/0017_remote_call_snapshots.sql",
+                                                           "server/internal/storage/migrations/0018_remote_call_snapshot_order.sql",
+                                                           "android/parent-app/src/main/kotlin/com/appcontrol/parent/ParentActivity.kt",
+                                                           "docs/REMOTE_CALL_API.md",
+                                                           "docs/COMMAND_CHANNEL.md",
+                                                           "scripts/test-call-actions.ps1",
+                                                           "docs/CALL_FEASIBILITY.md",
+                                                           "android/telecom-fixture/src/main/java/org/example/appcontroltelecomfixture/FixtureConnectionService.java",
+                                                           "android/child-app/src/androidTest/java/com/appcontrol/child/TelecomFixtureProbe.java",
+                                                           "scripts/test-android-telecom-fixture.ps1",
+                                                           "docs/EMULATOR_TESTS.md"
+                                                       ],
+                                          "notes":  "Foreground parent workflow offers reject for permitted ringing calls and end for permitted active/held calls, with exact-call server/state checks and child observed-result acknowledgement. Emergency/unclassified calls are not permitted; disabled feature builds cannot execute call commands while lock and policy flows remain enabled. Full and snapshot sync share a serialized expiry-aware in-memory session. Focused Go/JVM checks pass; child debug compilation passes with the default false flag and explicit opt-in. The earlier CallWatchService setSilent compile blocker was fixed on 24 October. Current parent/child release assembly and vital lint pass on 25 October; both unsigned APKs match across two clean offline builds. See logs/build/2026-10-25.txt. Incoming-call notification and hardware acceptance remain open."
+                                      },
+                                      {
+                                          "id":  "P4-004",
+                                          "feature":  "Speaker, earpiece, wired, and Bluetooth routing behave correctly",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Run an audio-route matrix on Android 13 and Android 14+ devices.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/ManagedInCallService.kt",
+                                                           "docs/CALL_FEASIBILITY.md",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/CallActivity.kt",
+                                                           "docs/COMPLETED_WORK.md"
+                                                       ],
+                                          "notes":  "Local Audio output picker now supports available earpiece/speaker/wired/Bluetooth outputs using specific legacy Bluetooth devices on Android 13 and exact CallEndpoint identities on Android 14+. Explicit legacy permission flow, stale call/endpoint checks, request-versus-observed feedback and call-scoped cleanup implemented. Final child debug build passes. Actual sound/routing/device matrix remains unverified; broad tests deferred while building features."
+                                      },
+                                      {
+                                          "id":  "P4-005",
+                                          "feature":  "Dual-SIM, locked-screen, reboot, and dialer-crash recovery work",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Run real calls for each condition and verify the system dialer fallback where required.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/CallActivity.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/CallRegistry.kt",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/CallNotifications.kt",
+                                                           "docs/CALL_FEASIBILITY.md"
+                                                       ],
+                                          "notes":  "Account selection, locked-screen alert setup, selected-ID rotation preservation and process-local identity invalidation exist. Actual dual-SIM, reboot, lock and process-crash recovery/fallback require physical tests."
+                                      },
+                                      {
+                                          "id":  "P4-006",
+                                          "feature":  "Emergency-call behavior remains available",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Follow the carrier/device-approved test procedure and verify the Android emergency path is not intercepted.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/calls/DialActivity.kt",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/calls/CallActionGate.java",
+                                                           "docs/CALL_FEASIBILITY.md",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/calls/EmergencyCallGuard.java",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/calls/EmergencyCallGuardChecks.java",
+                                                           "android/telecom-fixture/src/main/java/org/example/appcontroltelecomfixture/FixtureConnectionService.java",
+                                                           "android/child-app/src/androidTest/java/com/appcontrol/child/TelecomFixtureProbe.java",
+                                                           "scripts/test-android-telecom-fixture.ps1",
+                                                           "docs/EMULATOR_TESTS.md"
+                                                       ],
+                                          "notes":  "Platform call placement and preloaded phone access retained with conservative emergency remote protection; no approved carrier/device emergency-path test completed. Fixed missing/non-telephone handles failing open in internal remote classification; helper/gate regressions pass and local user control is retained. Actual emergency calling remains unverified. Synthetic non-SIM Telecom callback/control/identity and remote SIP safety tests pass. Versioned ui-controls-v1 screen-button checks pass for answer, hold, resume, mute/unmute, end and reject, with original dialer restored. Actual SIM and positive remote-answer evidence remain pending."
+                                      }
+                                  ]
+                   },
+                   {
+                       "id":  "P5",
+                       "name":  "Parent application",
+                       "checks":  [
+                                      {
+                                          "id":  "P5-001",
+                                          "feature":  "Login, logout, session expiry, and recovery are complete",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Run UI tests and manual recovery from expired and revoked sessions.",
+                                          "evidence":  [
+                                                           "docs/PARENT_APP.md",
+                                                           "docs/PARENT_RECOVERY.md",
+                                                           "android/parent-app/src/main/kotlin/com/appcontrol/parent/ParentClient.kt",
+                                                           "android/parent-app/src/main/kotlin/com/appcontrol/parent/SessionVault.kt",
+                                                           "scripts/test-android-parent-session.ps1",
+                                                           "scripts/test-android-parent-client.ps1",
+                                                           "server/internal/auth/recovery_test.go",
+                                                           "server/cmd/parent-recovery/main_test.go",
+                                                           "logs/build/2026-10-24.txt",
+                                                           "android/parent-app/src/androidTest/java/com/appcontrol/parent/ParentPersistenceProbe.java",
+                                                           "scripts/test-android-parent-persistence.ps1"
+                                                       ],
+                                          "notes":  "Parent login/register, Keystore AES-GCM session storage, serialized refresh and honest logout implemented. Emulator vault and connection-double checks pass; operator recovery revokes sessions and unused enrollment while preserving active children. Go recovery, rollback, private stdin and migration upgrade regressions pass. Live server/Android login, session lifecycle and operator recovery acceptance remain open.; Synthetic Android 37 vault persistence passed confirmed process termination and actual reboot with unchanged ciphertext, retained non-exportable key and cleanup; live server session continuity and Redmi remain pending."
+                                      },
+                                      {
+                                          "id":  "P5-002",
+                                          "feature":  "Enrollment and device capability status are understandable",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "A new tester completes enrollment without developer tools and identifies missing capabilities.",
+                                          "evidence":  [
+                                                           "docs/PARENT_APP.md",
+                                                           "server/internal/pairing/devices_test.go",
+                                                           "server/internal/control/status_test.go",
+                                                           "server/internal/httpapi/device_status_test.go",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/policy/DeviceCapabilities.kt"
+                                                       ],
+                                          "notes":  "Paged parent-scoped device list, enrollment code UI and authenticated capability reports with server receipt timestamps implemented. Server isolation, required fields and revocation tests pass. Live Android enrollment/capability workflow remains unverified."
+                                      },
+                                      {
+                                          "id":  "P5-003",
+                                          "feature":  "All control and scheduling workflows are complete",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "UI tests cover lock, internet, app block, schedules, exceptions, and result states.",
+                                          "evidence":  [
+                                                           "docs/PARENT_APP.md",
+                                                           "android/parent-app/src/main/kotlin/com/appcontrol/parent/ParentActivity.kt",
+                                                           "docs/CALL_CONTACTS.md",
+                                                           "contracts/call-contacts.schema.json",
+                                                           "server/internal/control/call_contacts_test.go",
+                                                           "server/internal/httpapi/call_contacts_test.go"
+                                                       ],
+                                          "notes":  "Parent app edits pause, inventory app blocks, allowlists and explicit-zone weekly schedules with optimistic versioning. Lock intent uses persisted idempotency keys. Native UI builds; real parent-to-child controls and schedules remain acceptance work. 2026-10-24: Parent-managed contacts and explicit local Call Parent shortcut implemented; separately versioned API, migration 0019, encrypted enrollment-bound child cache and focused Go authorization/payload/CAS/audit tests pass; parent/child debug builds pass. Contact device delivery/cache/UI/SIM acceptance and outgoing-call restriction policy remain open. See docs/CALL_CONTACTS.md."
+                                      },
+                                      {
+                                          "id":  "P5-004",
+                                          "feature":  "Incoming-call notification and remote call actions are complete",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Receive a background notification and complete answer, reject, and end actions against real calls.",
+                                          "evidence":  [
+                                                           "docs/PARENT_CALL_ALERTS.md",
+                                                           "android/parent-app/src/main/kotlin/com/appcontrol/parent/CallWatchService.kt",
+                                                           "android/parent-app/src/main/java/com/appcontrol/parent/CallWatchState.java",
+                                                           "scripts/test-parent-call-watch.ps1",
+                                                           "logs/build/2026-10-24.txt"
+                                                       ],
+                                          "notes":  " 2026-10-24: Built opt-in one-child ten-minute parent call watch using a visible data-sync foreground service and bounded polling. Private ringing alerts open fresh exact-call review; no automatic commands. JVM freshness/order/deduplication/deadline/capacity checks and final parent debug APK build pass. Notification permission/background/service/tap/stop/logout/real-call/Redmi runtime acceptance and continuous parent push/live Firebase remain open."
+                                      },
+                                      {
+                                          "id":  "P5-005",
+                                          "feature":  "Dashboard distinguishes pending, confirmed, failed, expired, and offline states",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Inject each backend state and verify the UI never reports an unconfirmed action as successful.",
+                                          "evidence":  [
+                                                           "docs/PARENT_APP.md",
+                                                           "server/internal/control/history_test.go",
+                                                           "server/internal/httpapi/command_history_test.go",
+                                                           "scripts/test-parent-contact-state.ps1",
+                                                           "android/parent-app/src/main/java/com/appcontrol/parent/ContactFreshness.java"
+                                                       ],
+                                          "notes":  "Desired/report keys and versions displayed separately; command history shows queued/delivered/terminal states with bounded chronological pagination and expiry processing. Last contact is explicitly observational. Server history and isolation checks pass; live dashboard acceptance remains open. Contact freshness uses server timestamps with unknown/recent/offline-or-delayed/clock-change states; exact 20-minute boundary checks and parent APK build pass."
+                                      }
+                                  ]
+                   },
+                   {
+                       "id":  "P6",
+                       "name":  "Hardening and reliability",
+                       "checks":  [
+                                      {
+                                          "id":  "P6-001",
+                                          "feature":  "Reboot, process death, network switching, airplane mode, and server outage recover",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Execute the failure matrix and verify eventual policy convergence with accurate status reporting.",
+                                          "evidence":  [
+                                                           "android/child-app/src/main/java/com/appcontrol/child/commands/SyncStages.java",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/commands/SyncWorkQueue.java",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/commands/SyncWorkQueueChecks.java",
+                                                           "android/child-app/src/debug/java/com/appcontrol/child/testing/QueueProbeService.java",
+                                                           "android/child-app/src/androidTest/java/com/appcontrol/child/WorkQueueProbe.java",
+                                                           "scripts/test-android-work-queue.ps1",
+                                                           "android/child-app/src/androidTest/java/com/appcontrol/child/RequestControlProbe.java",
+                                                           "scripts/test-android-request-control.ps1",
+                                                           "android/child-app/src/debug/java/com/appcontrol/child/testing/JournalProbeService.java",
+                                                           "android/child-app/src/androidTest/java/com/appcontrol/child/JournalProcessProbe.java",
+                                                           "scripts/test-android-journal-process.ps1",
+                                                           "android/child-app/src/androidTest/java/com/appcontrol/child/PolicyRebootProbe.java",
+                                                           "scripts/test-android-policy-reboot.ps1",
+                                                           "scripts/wait-android-policy-reboot.ps1",
+                                                           "docs/EMULATOR_TESTS.md",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/commands/RequestControl.java",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/sync/SyncScheduler.kt",
+                                                           "android/child-app/src/main/java/com/appcontrol/child/policy/PolicyRetry.java",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/policy/PackagePolicyChecks.java",
+                                                           "scripts/test-package-policy.ps1",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/commands/RequestControlChecks.java",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/commands/StalledTransportChecks.java",
+                                                           "android/child-app/src/test/java/com/appcontrol/child/commands/SyncStagesChecks.java",
+                                                           "android/child-app/src/main/kotlin/com/appcontrol/child/commands/CommandSync.kt",
+                                                           "scripts/test-command-journal.ps1",
+                                                           "logs/build/2026-10-24.txt"
+                                                       ],
+                                          "notes":  "Independent policy recovery and transient package retries implemented with JVM checks. Android 37 instrumentation verifies queued late requests, backoff redelivery, cancellation without completion, request deadlines and stalled TLS failure/worker cleanup. These use local fixtures and the production coordinators. Full enrolled-device reboot, process death, mobile-network switching, airplane mode and server-outage matrix remains unverified."
+                                      },
+                                      {
+                                          "id":  "P6-002",
+                                          "feature":  "Supported Redmi Android and HyperOS matrix passes",
+                                          "required":  true,
+                                          "status":  "not_started",
+                                          "verification":  "Run the release suite on every declared device/OS combination and record build fingerprints.",
+                                          "evidence":  [
+
+                                                       ],
+                                          "notes":  ""
+                                      },
+                                      {
+                                          "id":  "P6-003",
+                                          "feature":  "Authorization, rate limiting, revocation, and request limits resist abuse",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Run automated negative tests and a documented manual security review.",
+                                          "evidence":  [
+                                                           "docs/SERVER_PROTECTION.md",
+                                                           "server/internal/httpapi/protection.go",
+                                                           "server/internal/httpapi/protection_test.go",
+                                                           "server/internal/config/protection_test.go",
+                                                           "scripts/test-recovery-executables.ps1",
+                                                           "logs/build/2026-10-24.txt",
+                                                           "logs/build/2026-10-23.txt"
+                                                       ],
+                                          "notes":  "Default bounded peer/global admission, password concurrency, explicit proxy trust, request bounds and context budgets implemented; negative regression tests and local review pass. Deployment load/proxy checks and future socket revocation remain open."
+                                      },
+                                      {
+                                          "id":  "P6-004",
+                                          "feature":  "Logs and FCM payloads contain no prohibited sensitive data",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Capture representative logs and payloads, then scan for credentials, phone numbers, command bodies, and policy data.",
+                                          "evidence":  [
+                                                           "docs/SERVER_PROTECTION.md",
+                                                           "docs/WAKEUP_PROVIDER.md",
+                                                           "server/internal/httpapi/protection_test.go",
+                                                           "scripts/run-logged.ps1",
+                                                           "scripts/test-logged-command-output.ps1",
+                                                           "scripts/test-recovery-executables.ps1",
+                                                           "logs/build/2026-10-24.txt",
+                                                           "logs/build/2026-10-23.txt"
+                                                       ],
+                                          "notes":  "Captured synthetic request logs use route templates and suppress identifiers, raw paths, query/header/body values and panic payloads. FCM adapter payload tests enforce opaque hints. Deployed Android/proxy/system logs and live Firebase capture remain pending."
+                                      },
+                                      {
+                                          "id":  "P6-005",
+                                          "feature":  "Certificate rotation and database restore are proven",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Rotate server trust without losing devices and restore the server from encrypted backup.",
+                                          "evidence":  [
+                                                           "docs/DATABASE_RECOVERY.md",
+                                                           "docs/SERVER_TRUST.md",
+                                                           "android/server-trust.gradle.kts",
+                                                           "scripts/test-server-origin.ps1",
+                                                           "server/cmd/control-admin/main_test.go",
+                                                           "server/cmd/control-admin/tls_preflight.go",
+                                                           "server/cmd/control-admin/tls_preflight_test.go",
+                                                           "scripts/backup-database.ps1",
+                                                           "server/internal/storage/backup_security_test.go",
+                                                           "server/internal/storage/recovery_audit_test.go",
+                                                           "logs/build/2026-10-23.txt"
+                                                       ],
+                                          "notes":  "Administration recovery, streaming cancellation and unattended backup failure cases tested. Local HTTPS recovery now verifies parent login, original device-key proof, recovered policy/queue, acknowledgement, idempotency, recovery audit and revocation with fresh service instances. Android platform trust configuration supports current/backup pins and a compiled origin gate; release requires complete trust inputs. JVM origin negatives and offline SPKI derivation pass. Physical TLS/rotation, deployed scheduler, clean-host operational restore and actual Android device reconnection remain unverified."
+                                      },
+                                      {
+                                          "id":  "P6-006",
+                                          "feature":  "Battery, data, command latency, and FCM latency meet agreed targets",
+                                          "required":  true,
+                                          "status":  "not_started",
+                                          "verification":  "Run a 72-hour measurement and attach the resulting report.",
+                                          "evidence":  [
+
+                                                       ],
+                                          "notes":  ""
+                                      }
+                                  ]
+                   },
+                   {
+                       "id":  "P7",
+                       "name":  "Private release and pilot",
+                       "checks":  [
+                                      {
+                                          "id":  "P7-001",
+                                          "feature":  "Parent and child APKs are reproducibly built and signed",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Create two clean release builds, compare reproducible outputs where applicable, and verify signing certificates.",
+                                          "evidence":  [
+                                                           "docs/RELEASE_BUILDS.md",
+                                                           "scripts/test-release-reproducibility.ps1",
+                                                           "scripts/sign-private-apks.ps1",
+                                                           "scripts/test-private-apk-signing.ps1",
+                                                           "logs/build/2026-10-24.txt",
+                                                           "docs/PRODUCTION_CONFIGURATION.md",
+                                                           "scripts/export-production-configuration.ps1",
+                                                           "scripts/test-production-configuration.ps1"
+                                                       ],
+                                          "notes":  "Both parent and child unsigned release APKs match across two clean offline builds using full assembleRelease tasks including vital lint, synthetic public pins and reserved hostname. Evidence: .cache/release-repro-91c15c8badc342ff9e3bd0777dec9bfa/reproducibility.json. Isolated random-key signing, certificate refusal, hashes and overwrite refusal pass on these exact APKs; no production key used. Dependency availability is resolved. Separate full lint found an SDK path property escaping error, now fixed; its rerun is deferred while feature building takes priority. Production signing/deployment and actual-device acceptance remain open. 2026-10-24: Public production-configuration validator/exporter implemented. Focused fixture/refusal/polling/FCM consistency/hash checks and parent/child actual Gradle release BuildConfig generation/trust validation pass using public fixtures. Live authority, signing and production acceptance remain open. See docs/PRODUCTION_CONFIGURATION.md."
+                                      },
+                                      {
+                                          "id":  "P7-002",
+                                          "feature":  "Private update, rollback, and enrollment preservation work",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Upgrade and roll back test releases while preserving Device Owner enrollment and policies.",
+                                          "evidence":  [
+                                                           "android/app-version.gradle.kts",
+                                                           "scripts/test-android-policy-upgrade.ps1",
+                                                           "scripts/wait-android-policy-upgrade.ps1",
+                                                           "android/child-app/src/androidTest/java/com/appcontrol/child/PolicyUpgradeProbe.java",
+                                                           "docs/EMULATOR_TESTS.md",
+                                                           "logs/build/2026-10-24.txt",
+                                                           "docs/RELEASE_METADATA.md",
+                                                           "contracts/release-manifest.schema.json",
+                                                           "server/internal/release/manifest_test.go",
+                                                           "server/cmd/release-manifest/main_test.go",
+                                                           "scripts/test-android-release-manifest.ps1",
+                                                           "server/internal/release/document_test.go",
+                                                           "server/internal/httpapi/release_test.go",
+                                                           "android/shared/src/main/java/com/appcontrol/transport/ReleaseArtifact.java",
+                                                           "android/shared/src/androidTest/java/com/appcontrol/transport/ReleaseArtifactProbe.java",
+                                                           "scripts/test-android-release-artifact.ps1",
+                                                           "android/shared/src/main/java/com/appcontrol/transport/ReleaseDownload.java"
+                                                       ],
+                                          "notes":  "Actual Android 37 debug-signed version 1-to-2 upgrade preserves Device Owner, identical Keystore identity and cached policy; package-replaced production reconciliation observed before verifier. Fixture cleanup passes. Lower-version replacement refused without overrides. Production key, live enrolled delivery, approved rollback and Redmi acceptance remain open. Domain-separated signed metadata and origin/signer/hash/lifetime/replay validation pass Go and both Android platform probes. Production key embedding, download/inspection, installation and hosting remain open. Optional verified metadata GET/HEAD route passes immutable snapshot, per-request expiry and write-refusal tests; real deployment/APK hosting remains open.; Android 37 actual disposable-signed release APK inspection now passes hash/size/package/version/SDK/signer and debug/content rejection. Upgrade guard checks use synthetic baselines; no new real installation or rollback inferred. Download/staging, production trust-key embedding and installation remain open.; Private bounded HTTPS staging and controlled-connection cleanup/rejection tests now pass on Android 37; live TLS transfer, production trust/replay state and installation remain open."
+                                      },
+                                      {
+                                          "id":  "P7-003",
+                                          "feature":  "Production server restores successfully from backup",
+                                          "required":  true,
+                                          "status":  "not_started",
+                                          "verification":  "Restore onto a clean host and reconnect enrolled test devices.",
+                                          "evidence":  [
+
+                                                       ],
+                                          "notes":  ""
+                                      },
+                                      {
+                                          "id":  "P7-004",
+                                          "feature":  "Supervised family pilot completes without critical failures",
+                                          "required":  true,
+                                          "status":  "not_started",
+                                          "verification":  "Complete a one-to-two-week pilot and resolve every severity-one issue.",
+                                          "evidence":  [
+
+                                                       ],
+                                          "notes":  ""
+                                      },
+                                      {
+                                          "id":  "P7-005",
+                                          "feature":  "Operational recovery procedures are documented and exercised",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Exercise lost server, changed SIM, changed router, lost parent phone, and child replacement procedures.",
+                                          "evidence":  [
+                                                           "docs/OPERATIONAL_ACCEPTANCE.md",
+                                                           "docs/PARENT_RECOVERY.md"
+                                                       ],
+                                          "notes":  "Operational exercise procedures documented. Local parent recovery/server restore tests exist; physical/deployed recovery exercises remain unperformed."
+                                      },
+                                      {
+                                          "id":  "P7-006",
+                                          "feature":  "Release build and deployment logs are complete and archived",
+                                          "required":  true,
+                                          "status":  "in_progress",
+                                          "verification":  "Verify every release build, signing, migration, deployment, rollback, and restore command has a sanitized dated text-log entry.",
+                                          "evidence":  [
+                                                           "scripts/archive-verification-evidence.ps1",
+                                                           "scripts/verify-evidence-archive.ps1",
+                                                           "logs/build/2026-10-24.txt"
+                                                       ],
+                                          "notes":  "Allowlisted local evidence snapshot verifies both dated logs, documented historical exception, exact archived bytes, file hashes and wrong-digest refusal without extraction. Off-host archival and complete production release/deployment logs remain open."
+                                      }
+                                  ]
+                   }
+               ]
+}

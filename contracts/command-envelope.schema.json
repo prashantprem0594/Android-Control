@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://app-control.local/contracts/command-envelope.schema.json",
+  "title": "App Control command envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "commandId",
+    "deviceId",
+    "type",
+    "payload",
+    "issuedAt",
+    "expiresAt"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "commandId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "deviceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "LOCK_DEVICE",
+        "PAUSE_INTERNET",
+        "RESUME_INTERNET",
+        "SET_APP_BLOCKS",
+        "ANSWER_CALL",
+        "REJECT_CALL",
+        "END_CALL"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "issuedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
+

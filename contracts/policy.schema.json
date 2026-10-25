@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Versioned desired device policy snapshot",
+  "$comment": "Service validation additionally resolves time zones, rejects equal start/end, enforces distinct schedule IDs, at most 100 total distinct blocked targets, protected-target rules, and a 64 KiB snapshot limit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formatVersion", "version", "internetPaused", "blockedPackages", "alwaysAllowedPackages", "schedules", "updatedAt"],
+  "properties": {
+    "formatVersion": {"enum": [1, 2]},
+    "version": {"type": "integer", "minimum": 0, "maximum": 9007199254740992},
+    "internetPaused": {"type": "boolean"},
+    "blockedPackages": {"$ref": "#/$defs/packages"},
+    "alwaysAllowedPackages": {"$ref": "#/$defs/packages"},
+    "schedules": {"type": "array", "maxItems": 20, "items": {"$ref": "#/$defs/schedule"}},
+    "updatedAt": {"type": "string", "format": "date-time"},
+    "effectiveStateKey": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "reported": {
+      "type": "object", "additionalProperties": false,
+      "required": ["version", "result", "reportedAt"],
+      "properties": {
+        "version": {"type": "integer", "minimum": 1},
+        "result": {"enum": ["applied", "partial", "failed"]},
+        "reason": {"enum": ["", "device_owner_required", "protected_package", "package_unavailable", "package_change_failed", "internet_pause_unavailable", "interrupted"]},
+        "reportedAt": {"type": "string", "format": "date-time"},
+        "stateKey": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  },
+  "allOf": [{"if": {"properties": {"formatVersion": {"const": 1}}}, "then": {"properties": {"alwaysAllowedPackages": {"maxItems": 0}, "schedules": {"maxItems": 0}}}}],
+  "$defs": {
+    "packages": {"type": "array", "maxItems": 100, "uniqueItems": true, "items": {"type": "string", "minLength": 3, "maxLength": 255, "pattern": "^(android|[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+)$"}},
+    "schedule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "timeZone", "daysOfWeek", "startMinute", "endMinute", "internetPaused", "blockedPackages"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$"},
+        "timeZone": {"type": "string", "minLength": 1, "maxLength": 128},
+        "daysOfWeek": {"type": "array", "minItems": 1, "maxItems": 7, "uniqueItems": true, "items": {"type": "integer", "minimum": 1, "maximum": 7}},
+        "startMinute": {"type": "integer", "minimum": 0, "maximum": 1439},
+        "endMinute": {"type": "integer", "minimum": 0, "maximum": 1440},
+        "internetPaused": {"type": "boolean"},
+        "blockedPackages": {"$ref": "#/$defs/packages"}
+      }
+    }
+  }
+}
