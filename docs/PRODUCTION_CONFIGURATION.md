@@ -73,14 +73,26 @@ gates, physical managed setup or production acceptance.
 
 Run `scripts/test-configured-release-builds.ps1` through `run-logged.ps1` with
 task `P7-001`. It generates fresh public fixture configurations with update
-authority enabled, exports polling and Firebase argument arrays, and passes
+authority enabled, exports remote-call opt-in, ordinary polling and Firebase
+argument arrays, and passes
 those arrays directly to offline Gradle release assembly and full lint. It
 checks compiled origin/key/certificate/sequence/version fields and Firebase
-settings, confirms remote call rollout stays disabled, inspects manifests and
+settings, checks that remote call rollout matches each export, inspects manifests and
 DEX for SDK/test-code separation, and preserves APKs, BuildConfig and lint XML.
+The opt-in mode runs first; ordinary polling and Firebase modes then compile
+with remote calls disabled. All artifacts retain their mode labels.
 
 Each run uses a fresh `.cache/configured-releases-*` directory. Only a completed
 run writes `configured-builds.json`; failed runs retain partial evidence. The
 fixture metadata and APK hashes are public. These APKs are unsigned local test
 artifacts with a reserved origin and synthetic trust values, not production
 releases. The check does not install anything or send Firebase messages.
+
+The full three-mode matrix passes on 25 October 2026. Its six artifact records
+and preserved APK/BuildConfig/lint files are in
+`.cache/configured-releases-bd46c6ccb4cf49cf882b8f960b668ab4`.
+Independent reinspection confirms all recorded hashes, actual APK version 4 /
+`0.1.3-config-fixture`, non-debug APKs and disabled final polling/Firebase rollout
+flags. Both successful and failed checker attempts are in
+`logs/build/2026-10-25.txt`; the failures were corrected checker assertions and
+native-stderr handling, not production-readiness evidence.

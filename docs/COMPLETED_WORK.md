@@ -1,5 +1,13 @@
 # Completed work
 
+## Exported release configuration verification - 25 October 2026
+
+- Added `scripts/test-configured-release-builds.ps1` to build directly from freshly exported public argument arrays using reserved fixture origin/pins, synthetic update authority and version 4. It snapshots unsigned APKs, compiled BuildConfig, full lint XML and hashes; only complete runs publish `configured-builds.json`.
+- Polling and Firebase release paths pass assembly/full lint and exact compiled origin/key/certificate/sequence/version/Firebase checks. Actual DEX/manifests verify Firebase SDK/service appears only in the Firebase child; instrumentation/contact/artifact probes are absent from release code. Evidence: `.cache/configured-releases-eb55685791aa4ab1bbf916ccefe11b1a/configured-builds.json`, `logs/build/2026-10-25.txt`.
+- Corrected two new-runner issues exposed during validation: PowerShell array concatenation grouping and treating ordinary native Gradle stderr warnings as terminating errors. Failed attempts remain logged; successful result follows both fixes.
+- The extended three-mode matrix also passes: explicit remote-call opt-in, disabled polling, then disabled Firebase. Evidence: `.cache/configured-releases-bd46c6ccb4cf49cf882b8f960b668ab4/configured-builds.json`. Six APK/BuildConfig/lint inventories independently rechecked; actual APK versions are 4 / 0.1.3-config-fixture and non-debug. Final ordinary release and fcmRelease generated flags are both false.
+- Added the contact-cache probe to the existing debug/test APK separation checker. Updated configuration workflow and stale private-update release notes. No production-source, signing-key, phone, live Firebase or deployment change.
+
 ## Full Android lint and encrypted contact runtime - 25 October 2026
 
 - Ran the previously deferred full release lint. Parent passed; child reported six errors. Added explicit READ_PHONE_STATE gating and SecurityException fallback for SIM-account choices, API 34 guards before endpoint callbacks and optional telephony hardware declaration. Documented the private managed-inventory QUERY_ALL_PACKAGES exception on that permission only.

@@ -56,6 +56,12 @@ offline builds; evidence is
 This is the current-source comparison; production trust/signing, FCM and enabled
 update-authority variants retain their separate acceptance requirements.
 
+The [exported-configuration build matrix](PRODUCTION_CONFIGURATION.md) now also
+passes assembly/full lint for update-enabled polling, Firebase and explicit
+remote-call opt-in fixtures. That matrix validates compiled settings and APK
+separation; it is separate from reproducibility, production signing and live
+delivery checks.
+
 ## APK signing
 
 Use an existing operator-controlled release keystore, backed up separately from

@@ -106,3 +106,11 @@ acceptance complete without device evidence. The child retains
 foreground/background reconciliation as the transport fallback.
 The server implementation adds no external Go dependencies. Android SDK download
 and live project/device evidence remain external prerequisites.
+
+On 25 October, the exported-configuration build matrix also passes full
+`lintFcmRelease` and assembly with update authority configured. APK manifest/DEX
+inspection confirms the Firebase service/SDK is present only in the Firebase
+child APK, not parent or polling releases. Compiled public Firebase settings
+match the export. See [configuration evidence](PRODUCTION_CONFIGURATION.md).
+All project values remain synthetic; no live Firebase request or delivery was
+performed by this build check.
