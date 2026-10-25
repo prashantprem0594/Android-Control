@@ -1,0 +1,14 @@
+# Version 7. Fields: case, instant, zone, ISO days, startMinute, endMinute, basePaused, rulePaused, baseBlocked, ruleBlocked, alwaysAllowed, expectedPaused, expectedBlocked, stateKey. Lists use commas; '-' means empty.
+overnight-start	2026-10-23T16:30:00Z	Asia/Kolkata	5	1320	420	false	true	org.example.base	org.example.game,org.example.safe	org.example.safe	true	org.example.base,org.example.game	2c7ad198b9ed6e1c51f684d4e8a056d5f83c913137ea1a1ef0cb04bf3da66654
+overnight-before	2026-10-23T16:29:59Z	Asia/Kolkata	5	1320	420	false	true	org.example.base	org.example.game,org.example.safe	org.example.safe	false	org.example.base	0132c3c15c4ad6579dc77f11f6fa84f59dba27931ec980c888525050d29f859b
+overnight-end	2026-10-24T01:30:00Z	Asia/Kolkata	5	1320	420	false	true	org.example.base	org.example.game,org.example.safe	org.example.safe	false	org.example.base	0132c3c15c4ad6579dc77f11f6fa84f59dba27931ec980c888525050d29f859b
+wrong-start-day	2026-10-24T17:00:00Z	Asia/Kolkata	5	1320	420	false	true	org.example.base	org.example.game,org.example.safe	org.example.safe	false	org.example.base	0132c3c15c4ad6579dc77f11f6fa84f59dba27931ec980c888525050d29f859b
+spring-gap-before	2026-03-08T06:59:00Z	America/New_York	7	150	240	false	true	org.example.base	org.example.game	-	false	org.example.base	69f7d5c5043ffab67e06793f9d6fc1f72a527b49c0f8154335d6501d991e06b9
+spring-gap-after	2026-03-08T07:00:00Z	America/New_York	7	150	240	false	true	org.example.base	org.example.game	-	true	org.example.base,org.example.game	4e507f44f52905e9e3e51e18b2687aa13cccf7ef82824bf27e880bbd431fc090
+fall-first-hour	2026-11-01T05:30:00Z	America/New_York	7	75	105	false	true	org.example.base	org.example.game	-	true	org.example.base,org.example.game	4e507f44f52905e9e3e51e18b2687aa13cccf7ef82824bf27e880bbd431fc090
+fall-between-hours	2026-11-01T06:05:00Z	America/New_York	7	75	105	false	true	org.example.base	org.example.game	-	false	org.example.base	69f7d5c5043ffab67e06793f9d6fc1f72a527b49c0f8154335d6501d991e06b9
+fall-second-hour	2026-11-01T06:30:00Z	America/New_York	7	75	105	false	true	org.example.base	org.example.game	-	true	org.example.base,org.example.game	4e507f44f52905e9e3e51e18b2687aa13cccf7ef82824bf27e880bbd431fc090
+full-day-allow-override	2026-11-01T12:00:00Z	UTC	7	0	1440	true	false	org.example.base	org.example.game	org.example.base,org.example.game	true	-	c55e81c00df719747bc062832f2725b5793fe4fc9c8d91d77219344c1ca14385
+sunday-wrap	2026-10-26T00:15:00Z	UTC	7	1380	60	false	true	-	org.example.game	-	true	org.example.game	eb8ff23ce0212941b48f7a5ba7c3b4948013ec61dac6d33241e34bd040f53710
+sunday-wrap-end	2026-10-26T01:00:00Z	UTC	7	1380	60	false	true	-	org.example.game	-	false	-	c73677aeb7b8b70130a7ae3ffbb68a46e48115cb9a15a4878c4f149579642c64
+

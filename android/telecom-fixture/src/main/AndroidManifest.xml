@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:allowBackup="false" android:label="App Control synthetic Telecom fixture" android:usesCleartextTraffic="false">
+        <provider android:name=".FixtureProvider" android:authorities="org.example.appcontroltelecomfixture.control" android:exported="true" />
+        <service android:name=".FixtureConnectionService" android:exported="true" android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
+            <intent-filter><action android:name="android.telecom.ConnectionService" /></intent-filter>
+        </service>
+    </application>
+</manifest>
