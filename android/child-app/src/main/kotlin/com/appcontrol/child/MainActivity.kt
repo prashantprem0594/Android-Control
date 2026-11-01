@@ -3,7 +3,11 @@
 import android.app.Activity
 import android.app.AlarmManager
 import android.app.NotificationManager
+<<<<<<< HEAD
 import com.appcontrol.child.calls.DialerSupport
+=======
+import android.app.role.RoleManager
+>>>>>>> origin/main
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
@@ -15,48 +19,80 @@ import android.provider.Settings
 import android.Manifest
 import android.os.Bundle
 import android.os.Build
+<<<<<<< HEAD
 import android.widget.EditText
 import com.appcontrol.child.network.DeviceEnrollmentClient
 import com.appcontrol.child.network.DeviceRecoveryClient
+=======
+import android.view.Gravity
+import android.widget.EditText
+import com.appcontrol.child.network.DeviceEnrollmentClient
+>>>>>>> origin/main
 import com.appcontrol.child.commands.CommandSync
 import com.appcontrol.child.sync.SyncScheduler
 import com.appcontrol.child.policy.PolicyEnforcer
 import com.appcontrol.child.calls.DialActivity
 import android.widget.Button
+<<<<<<< HEAD
+=======
+import android.widget.LinearLayout
+>>>>>>> origin/main
 import android.widget.TextView
 import android.widget.Toast
 import android.widget.ScrollView
 import com.appcontrol.child.admin.AppControlDeviceAdminReceiver
+<<<<<<< HEAD
 import com.appcontrol.child.remote.RemoteScreenShareService
 import com.appcontrol.child.location.VisibleLocationShareService
 import com.appcontrol.child.recording.ConsentedRecorderService
 import com.appcontrol.transport.LocalNetworkAccess
 import com.appcontrol.transport.AppAppearance
 import java.time.Instant
+=======
+>>>>>>> origin/main
 
 class MainActivity : Activity() {
     private lateinit var devicePolicyManager: DevicePolicyManager
     private lateinit var adminComponent: ComponentName
     private lateinit var status: TextView
+<<<<<<< HEAD
     private var recorderApprovalPending = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppAppearance.prepare(this)
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+=======
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+>>>>>>> origin/main
 
         devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
         adminComponent = ComponentName(this, AppControlDeviceAdminReceiver::class.java)
 
+<<<<<<< HEAD
         status = TextView(this).apply { AppAppearance.status(this) }
 
         val lockButton = Button(this).apply {
             text = "Lock device"
+=======
+        status = TextView(this).apply {
+            textSize = 20f
+            gravity = Gravity.CENTER
+        }
+
+        val lockButton = Button(this).apply {
+            text = "Lock device (feasibility test)"
+>>>>>>> origin/main
             setOnClickListener { lockDeviceIfOwned() }
         }
 
         val serverInput = EditText(this).apply {
+<<<<<<< HEAD
             isSaveEnabled = false
+=======
+>>>>>>> origin/main
             hint = "HTTPS server URL"
             inputType = 17
             if (BuildConfig.SERVER_ORIGIN.isNotEmpty()) {
@@ -64,18 +100,27 @@ class MainActivity : Activity() {
                 isEnabled = false
             }
         }
+<<<<<<< HEAD
         val codeInput = EditText(this).apply { hint = "One-time pairing code"; inputType = 129; isSaveEnabled = false }
         val nameInput = EditText(this).apply { hint = "Device name"; isSaveEnabled = false }
         val enrollmentStatus = AppAppearance.text(this, "Use a one-time code from the parent app to pair this device.", 14f, false)
+=======
+        val codeInput = EditText(this).apply { hint = "One-time pairing code"; inputType = 129 }
+        val nameInput = EditText(this).apply { hint = "Device name" }
+        val enrollmentStatus = TextView(this)
+>>>>>>> origin/main
         val enrollButton = Button(this).apply {
             text = "Enroll with parent"
             setOnClickListener {
                 val server = serverInput.text.toString()
+<<<<<<< HEAD
                 if (LocalNetworkAccess.neededForOrigin(this@MainActivity, server)) {
                     enrollmentStatus.text = "Allow home-network server access, then enroll again."
                     LocalNetworkAccess.request(this@MainActivity, 4437)
                     return@setOnClickListener
                 }
+=======
+>>>>>>> origin/main
                 val code = codeInput.text.toString()
                 val name = nameInput.text.toString()
                 codeInput.text.clear()
@@ -92,12 +137,16 @@ class MainActivity : Activity() {
                             isEnabled = true
                             enrollmentStatus.text = if (result.isSuccess) "Enrollment confirmed" else
                                 "Enrollment failed. Check the server and use a fresh pairing code."
+<<<<<<< HEAD
                             refreshDeviceStatus()
+=======
+>>>>>>> origin/main
                         }
                     }
                 }.start()
             }
         }
+<<<<<<< HEAD
         val reconnectButton = Button(this).apply {
             text = "Reconnect to parent"
             setOnClickListener {
@@ -164,6 +213,17 @@ class MainActivity : Activity() {
                     Toast.makeText(this@MainActivity, "Phone role is unavailable on this device.", Toast.LENGTH_LONG).show()
                 } else if (!DialerSupport.isHeld(this@MainActivity)) {
                     startActivityForResult(request, 4400)
+=======
+        val syncStatus = TextView(this)
+        val dialerButton = Button(this).apply {
+            text = "Set up phone role (feasibility)"
+            setOnClickListener {
+                val roles = getSystemService(RoleManager::class.java)
+                if (!roles.isRoleAvailable(RoleManager.ROLE_DIALER)) {
+                    Toast.makeText(this@MainActivity, "Phone role is unavailable on this device.", Toast.LENGTH_LONG).show()
+                } else if (!roles.isRoleHeld(RoleManager.ROLE_DIALER)) {
+                    startActivityForResult(roles.createRequestRoleIntent(RoleManager.ROLE_DIALER), 4400)
+>>>>>>> origin/main
                 } else requestCallPermissions()
             }
         }
@@ -183,7 +243,11 @@ class MainActivity : Activity() {
         val alarmButton = Button(this).apply {
             text = "Allow precise schedule timing"
             setOnClickListener {
+<<<<<<< HEAD
                 if (Build.VERSION.SDK_INT < 31 || getSystemService(AlarmManager::class.java).canScheduleExactAlarms()) {
+=======
+                if (getSystemService(AlarmManager::class.java).canScheduleExactAlarms()) {
+>>>>>>> origin/main
                     Toast.makeText(this@MainActivity, "Precise schedule timing is allowed.", Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(this@MainActivity, "Allow alarms so offline controls can change at scheduled times.", Toast.LENGTH_LONG).show()
@@ -197,12 +261,17 @@ class MainActivity : Activity() {
                 if (!devicePolicyManager.isDeviceOwnerApp(packageName)) {
                     Toast.makeText(this@MainActivity, "Complete Device Owner setup first.", Toast.LENGTH_LONG).show()
                 } else {
+<<<<<<< HEAD
                     if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+=======
+                    if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+>>>>>>> origin/main
                         requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 4202)
                     } else requestVpnConsent()
                 }
             }
         }
+<<<<<<< HEAD
         val remoteAssistanceButton = Button(this).apply {
             text = "Enable remote assistance"
             setOnClickListener {
@@ -274,6 +343,11 @@ class MainActivity : Activity() {
                     LocalNetworkAccess.request(this@MainActivity, 4437)
                     return@setOnClickListener
                 }
+=======
+        val syncButton = Button(this).apply {
+            text = "Sync parent commands"
+            setOnClickListener {
+>>>>>>> origin/main
                 isEnabled = false
                 syncStatus.text = "Syncing..."
                 Thread {
@@ -293,6 +367,7 @@ class MainActivity : Activity() {
                 }.start()
             }
         }
+<<<<<<< HEAD
         listOf(serverInput, codeInput, nameInput).forEach { AppAppearance.styleField(it) }
         listOf(lockButton, enrollButton, reconnectButton, vpnButton, remoteAssistanceButton, startScreenShareButton, stopScreenShareButton, startLocationShareButton, stopLocationShareButton, approveRecorderButton, stopRecorderButton, alarmButton, dialerButton, callAlertsButton, syncButton)
             .forEach { AppAppearance.styleButton(it, false) }
@@ -379,6 +454,30 @@ class MainActivity : Activity() {
                     setOnClickListener { startActivity(Intent(this@MainActivity, UpdateActivity::class.java)) }
                 })
             })
+=======
+        val content = LinearLayout(this).apply {
+            gravity = Gravity.CENTER
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 48, 48, 48)
+            addView(status)
+            if (BuildConfig.UPDATE_PUBLIC_KEY.isNotEmpty()) addView(Button(this@MainActivity).apply {
+                text = "App updates"
+                setOnClickListener { startActivity(Intent(this@MainActivity, UpdateActivity::class.java)) }
+            })
+            addView(lockButton)
+            addView(serverInput)
+            addView(codeInput)
+            addView(nameInput)
+            addView(enrollButton)
+            addView(enrollmentStatus)
+            addView(vpnButton)
+            addView(alarmButton)
+            addView(dialerButton)
+            addView(callAlertsButton)
+            addView(dialPadButton)
+            addView(syncButton)
+            addView(syncStatus)
+>>>>>>> origin/main
         }
 
         setContentView(ScrollView(this).apply { addView(content) })
@@ -387,14 +486,18 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         runCatching { SyncScheduler.ensureScheduled(applicationContext) }
+<<<<<<< HEAD
         refreshDeviceStatus()
     }
 
     private fun refreshDeviceStatus() {
+=======
+>>>>>>> origin/main
         val isOwner = devicePolicyManager.isDeviceOwnerApp(packageName)
         status.text = if (isOwner) {
             "Device Owner: active"
         } else {
+<<<<<<< HEAD
             "Device Owner: setup needed"
         }
         val paired = getSharedPreferences("enrollment", MODE_PRIVATE).getString("deviceId", null) != null
@@ -402,6 +505,11 @@ class MainActivity : Activity() {
         status.append(if (DialerSupport.isHeld(this)) "\nPhone role: active" else "\nPhone role: not selected")
         if (LocalNetworkAccess.supported(this)) status.append("\nHome-network server access: " + if (LocalNetworkAccess.granted(this)) "allowed" else "not allowed")
         status.append("\nRecorder control: " + if (ConsentedRecorderService.sessionActive(this)) "approved temporarily" else "not approved")
+=======
+            "Device Owner: not enrolled"
+        }
+        status.append(if (getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_DIALER)) "\nPhone role: active" else "\nPhone role: not selected")
+>>>>>>> origin/main
     }
 
     private fun lockDeviceIfOwned() {
@@ -417,6 +525,7 @@ class MainActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == VPN_REQUEST && resultCode == RESULT_OK) applyCachedPolicy()
         if (requestCode == 4400 && resultCode == RESULT_OK) requestCallPermissions()
+<<<<<<< HEAD
         if (requestCode == SCREEN_SHARE_REQUEST && resultCode == RESULT_OK && data != null) {
             RemoteScreenShareService.start(this, resultCode, data)
             Toast.makeText(this, "Screen sharing started. Keep the Android notification visible and tap Stop when finished.", Toast.LENGTH_LONG).show()
@@ -426,12 +535,19 @@ class MainActivity : Activity() {
     private fun requestCallPermissions() {
         val missing = (listOf(Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE) +
             if (Build.VERSION.SDK_INT >= 33) listOf(Manifest.permission.POST_NOTIFICATIONS) else emptyList())
+=======
+    }
+
+    private fun requestCallPermissions() {
+        val missing = listOf(Manifest.permission.CALL_PHONE, Manifest.permission.READ_PHONE_STATE, Manifest.permission.POST_NOTIFICATIONS)
+>>>>>>> origin/main
             .filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
         if (missing.isNotEmpty()) requestPermissions(missing.toTypedArray(), 4402)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+<<<<<<< HEAD
         if (requestCode == 4437) Toast.makeText(this, if (LocalNetworkAccess.granted(this))
             "Home-network server access is allowed. Retry enrollment or sync."
             else "Home-network server access was not allowed. You can enable it in Android app permissions when needed.", Toast.LENGTH_LONG).show()
@@ -442,6 +558,9 @@ class MainActivity : Activity() {
             if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) ConsentedRecorderService.approve(this)
             else Toast.makeText(this, "Microphone permission is required before a recorder session can be approved.", Toast.LENGTH_LONG).show()
         }
+=======
+        if (requestCode == 4202) requestVpnConsent()
+>>>>>>> origin/main
     }
 
     private fun requestVpnConsent() {
@@ -455,12 +574,16 @@ class MainActivity : Activity() {
         Toast.makeText(this, "Internet pause permission is ready. Sync to send current policy status.", Toast.LENGTH_LONG).show()
     }
 
+<<<<<<< HEAD
     companion object {
         private const val VPN_REQUEST = 4200
         private const val SCREEN_SHARE_REQUEST = 4204
         private const val LOCATION_SHARE_REQUEST = 4205
         private const val RECORDER_PERMISSION_REQUEST = 4206
     }
+=======
+    companion object { private const val VPN_REQUEST = 4200 }
+>>>>>>> origin/main
 }
 
 

@@ -30,6 +30,7 @@ object CallNotifications {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val ringing = CallRegistry.state(entry.call) == CallActionGate.State.RINGING
         val person = Person.Builder().setName(CallRegistry.label(entry.call)).setImportant(true).build()
+<<<<<<< HEAD
         val publicVersion = Notification.Builder(context, CHANNEL)
             .setSmallIcon(android.R.drawable.sym_call_incoming)
             .setContentTitle(if (ringing) "Incoming call" else "Call in progress")
@@ -53,6 +54,14 @@ object CallNotifications {
                 add("Answer", CallActionGate.Action.ANSWER)
             } else add("End", CallActionGate.Action.END)
         }
+=======
+        val style = if (ringing) Notification.CallStyle.forIncomingCall(person, action(CallActionGate.Action.REJECT), action(CallActionGate.Action.ANSWER))
+            else Notification.CallStyle.forOngoingCall(person, action(CallActionGate.Action.END))
+        val builder = Notification.Builder(context, CHANNEL).setSmallIcon(android.R.drawable.sym_call_incoming)
+            .setContentTitle(if (ringing) "Incoming call" else "Call in progress")
+            .setContentText(CallRegistry.label(entry.call)).setCategory(Notification.CATEGORY_CALL)
+            .setContentIntent(open).setStyle(style).setOngoing(true).setOnlyAlertOnce(true)
+>>>>>>> origin/main
         if (ringing && (Build.VERSION.SDK_INT < 34 || manager.canUseFullScreenIntent())) builder.setFullScreenIntent(open, true)
         runCatching { manager.notify(entry.id, ID, builder.build()) }
     }

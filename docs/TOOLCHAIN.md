@@ -28,7 +28,11 @@ These are pinned in project files. The wrapper remains the canonical build entry
 | Global Gradle bootstrap | 9.6.0 at `C:\Gradle\gradle-9.6.0` |
 | Compile SDK | 37 |
 | Target SDK | 37 |
+<<<<<<< HEAD
 | Minimum SDK | Child: 28 (Android 9); parent: 33 (Android 13) |
+=======
+| Minimum SDK | 33 |
+>>>>>>> origin/main
 
 ## Not required initially
 

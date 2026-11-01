@@ -1,7 +1,10 @@
 # Device policy reconciliation and verification
 
+<<<<<<< HEAD
 26 October: IPv4 gateway TCP acceptance now passes selected-UID block/resume and management-UID reachability, without ADB reverse. Android 17 LAN consent fixes the earlier baseline timeout; the probe waits for framework VPN registration. This does not establish physical Redmi, Wi-Fi/mobile switching, DNS, IPv6 or Firebase behavior.
 
+=======
+>>>>>>> origin/main
 The child now applies cached application restrictions through Device Owner
 package suspension and has a local internet-pause VPN prototype. Both controls
 still require physical Redmi acceptance evidence. No device was attached during

@@ -13,6 +13,10 @@ The Android enrollment client can request a session with its existing AndroidKey
 
 Automated service and HTTP tests cover wrong-key proofs, replay, challenge replacement and expiry, session expiry and replacement, hashed token storage, parent isolation, immediate request rejection after revocation, idempotence, pending-proof invalidation, and service reinitialization against persisted state.
 
+<<<<<<< HEAD
 P1-005 remains in progress. There is no device socket transport yet; later transport work must revalidate persistent device authorization for each privileged operation and terminate revoked connections. AndroidKeyStore authentication and parent-triggered revocation passed in the isolated HTTPS acceptance AVD on 25 October 2026; subsequent identity and command requests using the revoked token were rejected. Established-socket invalidation remains unverified because the app does not yet use a persistent device socket. Rate limiting for public challenge issuance remains part of hardening (P6-003); the current per-device challenge bound is not a rate limiter.
+=======
+P1-005 remains in progress. There is no device socket transport yet; later transport work must revalidate persistent device authorization for each privileged operation and terminate revoked connections. Actual AndroidKeyStore authentication still needs device/emulator verification. Rate limiting for public challenge issuance remains part of hardening (P6-003); the current per-device challenge bound is not a rate limiter.
+>>>>>>> origin/main
 
 Verification result: both parent and child debug APKs built successfully offline with installed Gradle 9.6.0 and in-process Kotlin compilation on 23 October 2026.

@@ -9,13 +9,19 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+<<<<<<< HEAD
 	"io"
 	"net/http"
+=======
+>>>>>>> origin/main
 	"net/http/httptest"
 	"path/filepath"
 	"strings"
 	"testing"
+<<<<<<< HEAD
 	"time"
+=======
+>>>>>>> origin/main
 
 	"appcontrol/server/internal/auth"
 	"appcontrol/server/internal/control"
@@ -24,11 +30,14 @@ import (
 )
 
 func TestEnrolledDeviceCommandTransport(t *testing.T) {
+<<<<<<< HEAD
 	t.Run("handler", func(t *testing.T) { testEnrolledDeviceCommandTransport(t, false) })
 	t.Run("https", func(t *testing.T) { testEnrolledDeviceCommandTransport(t, true) })
 }
 
 func testEnrolledDeviceCommandTransport(t *testing.T, overTLS bool) {
+=======
+>>>>>>> origin/main
 	ctx := context.Background()
 	db, err := storage.Open(ctx, filepath.Join(t.TempDir(), "pairing.db"))
 	if err != nil {
@@ -55,6 +64,7 @@ func testEnrolledDeviceCommandTransport(t *testing.T, overTLS bool) {
 		return auth.Parent{ID: "another-parent"}, "", nil
 	}
 	handler := NewHandler(Options{Auth: fake, Pairing: service, Control: control.NewService(db)})
+<<<<<<< HEAD
 	var server *httptest.Server
 	var client *http.Client
 	if overTLS {
@@ -63,6 +73,8 @@ func testEnrolledDeviceCommandTransport(t *testing.T, overTLS bool) {
 		client = server.Client()
 		client.Timeout = 10 * time.Second
 	}
+=======
+>>>>>>> origin/main
 	call := func(method, path, token, body string, expected int, target any) {
 		t.Helper()
 		request := httptest.NewRequest(method, path, strings.NewReader(body))
@@ -70,6 +82,7 @@ func testEnrolledDeviceCommandTransport(t *testing.T, overTLS bool) {
 			request.Header.Set("Authorization", "Bearer "+token)
 		}
 		response := httptest.NewRecorder()
+<<<<<<< HEAD
 		if overTLS {
 			wire, err := http.NewRequest(method, server.URL+path, strings.NewReader(body))
 			if err != nil {
@@ -90,6 +103,9 @@ func testEnrolledDeviceCommandTransport(t *testing.T, overTLS bool) {
 		} else {
 			handler.ServeHTTP(response, request)
 		}
+=======
+		handler.ServeHTTP(response, request)
+>>>>>>> origin/main
 		if response.Code != expected {
 			t.Fatalf("%s: status=%d expected=%d", path, response.Code, expected)
 		}

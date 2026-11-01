@@ -1,5 +1,6 @@
 # Command channel verification
 
+<<<<<<< HEAD
 The channel supports `LOCK_DEVICE`, short-lived `ANSWER_CALL`, `REJECT_CALL`,
 and `END_CALL` actions targeting a specific call ID, plus `OPEN_APP` and
 `OPEN_SETTINGS` requests. App launch requests are limited to packages the child
@@ -10,6 +11,10 @@ notification was posted, not that it was tapped or that the app stayed open.
 Parent app requests expire after 30 minutes by default (the server permits at
 most one hour), including a check when the notification is tapped.
 Commands are committed to
+=======
+The channel supports `LOCK_DEVICE` and short-lived `ANSWER_CALL`, `REJECT_CALL`,
+and `END_CALL` actions targeting a specific call ID. Commands are committed to
+>>>>>>> origin/main
 SQLite before any fetch. Parent creation can use an `Idempotency-Key` header containing
 16–128 ASCII letters, digits, hyphens, or underscores. Retry the same key and TTL
 to retrieve the original command, including its terminal or expired state.
@@ -49,7 +54,11 @@ reopened. Status transitions and their audit events commit together.
 
 After enrollment, press **Sync parent commands** in the child app. This explicit
 foreground worker authenticates with AndroidKeyStore, fetches commands, executes
+<<<<<<< HEAD
 supported lock, launch-request and queued call actions, sends results, and downloads the latest
+=======
+supported lock and queued call actions, sends results, and downloads the latest
+>>>>>>> origin/main
 desired policy into app-private storage. A persisted background job
 also provides a polling fallback, subject to Android scheduling. FCM wakeups
 and sockets remain unconfigured.
@@ -173,7 +182,13 @@ see [emulator evidence](EMULATOR_TESTS.md) for their scope and limitations.
   failed work, cancellation and bounded batches using the production queue
   coordinator with a simulated platform queue.
 
+<<<<<<< HEAD
 Live HTTPS CommandSync now passes on the guarded Android 37 acceptance AVD: it fetched a queued LOCK_DEVICE command and desired policy, safely acknowledged the command as failed because the AVD is not Device Owner, and reported device_owner_required. Production EnrollmentClient enrollment and AndroidKeyStore authentication also passed on that AVD; see [integration evidence and limitations](INTEGRATION.md). Physical lock behavior, enrollment continuity under force-stop/reboot, and Redmi device reconciliation still require device evidence. The [FCM adapter and replaceable wake-up boundary](WAKEUP_PROVIDER.md)
+=======
+Real AndroidKeyStore enrollment, physical lock behavior, SharedPreferences
+durability under force-stop/reboot, and Redmi device reconciliation still require
+device evidence. The [FCM adapter and replaceable wake-up boundary](WAKEUP_PROVIDER.md)
+>>>>>>> origin/main
 are implemented and tested; project setup and live wake-up integration remain pending.
 
 Android 37 instrumentation now also verifies the production executor with

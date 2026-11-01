@@ -1,7 +1,10 @@
 # P1-004 enrollment protocol and verification
 
+<<<<<<< HEAD
 26 October: child enrollment/manual sync supports explicit Android 17 local-network consent for home servers. The setup screen uses FLAG_SECURE and pairing/server/name fields disable saved instance state. Gateway HTTPS acceptance passes real EnrollmentClient/AndroidKeyStore authentication; physical Device Owner provisioning remains separate.
 
+=======
+>>>>>>> origin/main
 The active workspace is `C:\Android Control`. Historical logs and earlier documentation may refer to the original `C:\App Control` location.
 
 ## HTTP API
@@ -21,6 +24,7 @@ Initial full Go tests passed after formatting the handoff's partial files. After
 
 ADB reports no attached devices. Actual AndroidKeyStore signing and end-to-end Android enrollment remain unverified. Both debug APKs built successfully offline using installed Gradle 9.6.0 and in-process Kotlin compilation. The wrapper download was blocked by network permissions; the installed distribution provided the pinned version. Actual device proof remains required before P1-004 can pass.
 
+<<<<<<< HEAD
 ## Android HTTPS verification on 25 October 2026
 
 The isolated Android 37 acceptance AVD completed the production `EnrollmentClient` flow against a disposable HTTPS server. `ParentClient` created the pairing code; the child acceptance package generated its non-exportable AndroidKeyStore key, enrolled, authenticated, and completed signed device requests. Production CommandSync fetched a test command and policy, declined the Device Owner-only action safely, and reported the actual device_owner_required state. The owning parent's live device listing included the child, reusing the consumed code was rejected, and a second account was denied access. The parent then revoked the child and subsequent device identity and command requests using its existing token were rejected. The live acceptance report and commands are in `.cache/android-server-https-reports/d976e72d6d1b4f9298ae1af23cfc63a4.json` and `logs/build/2026-10-25.txt`.
@@ -32,6 +36,15 @@ The acceptance process temporarily installed a test-only TLS socket factory pinn
 - Exercise proof replay and wrong-parent rejection from Android; consumed-code replay, parent isolation, and parent-triggered session revocation have passed, while backend negative tests cover proof replay.
 - Verify the enrollment UI and production certificate trust configuration against a configured test service.
 - Repeat on a dedicated child device when available. The connected physical phone is parent-only and must not be reset, cleared, or provisioned as Device Owner.
+=======
+## Device verification still required
+
+1. Build both APKs and install the child on a test device or emulator.
+2. Use a reachable HTTPS server with a trusted certificate and a test parent account.
+3. Create a pairing code through the authenticated endpoint and enter it in the child along with the server origin and device name.
+4. Confirm the child reports enrollment confirmed; verify the device is active through the owning parent's endpoint and inaccessible to another parent.
+5. Verify the key remains in AndroidKeyStore across process restart and can sign a new test challenge without exporting the private key. Record sanitized results through run-logged.ps1.
+>>>>>>> origin/main
 
 Verified build command (from android, through the logging wrapper):
 

@@ -2,7 +2,10 @@ package com.appcontrol.parent
 
 import android.content.Context
 import android.os.Bundle
+<<<<<<< HEAD
 import com.appcontrol.transport.AcceptanceHttps
+=======
+>>>>>>> origin/main
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -15,11 +18,19 @@ import org.json.JSONObject
 
 /** Controlled HTTPS connection doubles verify client behavior, not platform TLS. */
 object ParentClientProbe {
+<<<<<<< HEAD
     private class Connection(url: URL, private val status: Int, private val body: String, private val fail: Boolean, private val waitForDisconnect: Boolean = false, private val failConnect: Boolean = false) : HttpsURLConnection(url) {
         val sent = ByteArrayOutputStream()
         @Volatile var closed = false
         val waiting = java.util.concurrent.CountDownLatch(1)
         override fun connect() { if (failConnect) throw java.net.ConnectException("Fixture server offline") }
+=======
+    private class Connection(url: URL, private val status: Int, private val body: String, private val fail: Boolean, private val waitForDisconnect: Boolean = false) : HttpsURLConnection(url) {
+        val sent = ByteArrayOutputStream()
+        @Volatile var closed = false
+        val waiting = java.util.concurrent.CountDownLatch(1)
+        override fun connect() { }
+>>>>>>> origin/main
         override fun disconnect() { closed = true }
         override fun usingProxy() = false
         override fun getCipherSuite() = "fixture"
@@ -27,7 +38,10 @@ object ParentClientProbe {
         override fun getServerCertificates(): Array<Certificate> = emptyArray()
         override fun getOutputStream() = sent
         override fun getInputStream() = ByteArrayInputStream(body.toByteArray(Charsets.UTF_8))
+<<<<<<< HEAD
         override fun getErrorStream() = ByteArrayInputStream(body.toByteArray(Charsets.UTF_8))
+=======
+>>>>>>> origin/main
         override fun getResponseCode(): Int {
             if (waitForDisconnect) {
                 waiting.countDown()
@@ -51,9 +65,13 @@ object ParentClientProbe {
             val base = BuildConfig.SERVER_ORIGIN.ifEmpty { "https://client.example.org" }
             var refreshes = 0
             var responseStatus = 200
+<<<<<<< HEAD
             var errorBody: String? = null
             var ambiguous = false
             var serverOffline = false
+=======
+            var ambiguous = false
+>>>>>>> origin/main
             val requests = mutableListOf<Connection>()
             fun tokens(suffix: String) = JSONObject().put("accessToken", "fixture-access-credential-$suffix")
                 .put("refreshToken", "fixture-refresh-credential-$suffix")
@@ -64,11 +82,17 @@ object ParentClientProbe {
                     "/v1/auth/login" -> JSONObject().put("parent", JSONObject().put("email", "fixture@example.org")).put("tokens", tokens("first")).toString()
                     "/v1/auth/refresh" -> { refreshes++; tokens("rotated").toString() }
                     "/v1/devices" -> "{\"devices\":[]}"
+<<<<<<< HEAD
                     "/v1/device-recovery/requests" -> "{\"requests\":[{\"requestId\":\"recovery_request_001\",\"deviceId\":\"dev_AAAAAAAAAAAAAAAAAAAAAA\",\"displayName\":\"Fixture child\",\"expiresAt\":\"2030-01-01T00:05:00Z\"}]}"
                     "/v1/parent/call-events" -> JSONObject().put("serverTime", time.toString()).put("events", org.json.JSONArray()).toString()
                     else -> "{}"
                 }
                 Connection(url, responseStatus, errorBody ?: response, ambiguous && path == "/v1/auth/refresh", failConnect = serverOffline).also { requests.add(it) }
+=======
+                    else -> "{}"
+                }
+                Connection(url, responseStatus, response, ambiguous && path == "/v1/auth/refresh").also { requests.add(it) }
+>>>>>>> origin/main
             }
             val client = ParentClient(vault, factory) { time }
             stage = "invalid_origin_rejected"
@@ -81,6 +105,7 @@ object ParentClientProbe {
             client.devices()
             check(requests.last().getRequestProperty("Authorization") == "Bearer fixture-access-credential-first")
             check(requests.all { !it.instanceFollowRedirects && it.closed && it.url.host == URL(base).host })
+<<<<<<< HEAD
             stage = "device_recovery_parent_contract"
             val recovery = client.listRecoveryRequests().getJSONArray("requests").getJSONObject(0)
             check(recovery.getString("deviceId") == "dev_AAAAAAAAAAAAAAAAAAAAAA")
@@ -160,6 +185,8 @@ object ParentClientProbe {
             responseStatus = 200
             client.login(base, "fixture@example.org", "fixture-password-value")
             check(client.hasSession() && refreshes == 0 && errorBody == null && !ambiguous)
+=======
+>>>>>>> origin/main
             stage = "rotation_once"
             time = time.plusSeconds(45)
             val failures = java.util.Collections.synchronizedList(mutableListOf<Throwable>())
@@ -180,6 +207,7 @@ object ParentClientProbe {
             try { client.devices() } catch (failure: ParentClient.RequestFailure) { refused = failure.status == 302 }
             check(refused && !requests.last().instanceFollowRedirects)
             responseStatus = 200
+<<<<<<< HEAD
             stage = "definitive_call_rejection"
             for ((body, expected) in listOf(
                 "{\"error\":\"call_not_current\"}" to true,
@@ -230,6 +258,8 @@ object ParentClientProbe {
             serverOffline = false
             client.devices()
             check(client.hasSession())
+=======
+>>>>>>> origin/main
             stage = "ambiguous_refresh"
             time = time.plusSeconds(45); ambiguous = true
             val before = requests.size
@@ -267,6 +297,7 @@ object ParentClientProbe {
             check(interruptedConnection.get().waiting.await(2, java.util.concurrent.TimeUnit.SECONDS))
             thread.interrupt(); thread.join(2000)
             check(!thread.isAlive && interruptedFailure.get() && interruptedConnection.get().closed && !interruptedClient.hasSession())
+<<<<<<< HEAD
             if (BuildConfig.SERVER_ORIGIN.isNotEmpty() && AcceptanceHttps.isConfigured()) {
                 stage = "live_server_https"
                 val live = LiveServerHttpsProbe.run(context)
@@ -285,6 +316,16 @@ object ParentClientProbe {
             if (touched) {
                 try { vault.clear(); KeyStore.getInstance("AndroidKeyStore").apply { load(null); deleteEntry("app-control.$name") } }
                 catch (_: Exception) { result.putString("parent_client_probe", "failed"); result.putString("parent_push_client_probe", "failed"); result.putString("observation", "cleanup") }
+=======
+            result.putString("parent_client_probe", "passed")
+            result.putString("stream", "Parent client origin/access/rotation, redirect refusal, uncertain-refresh handling, logout, total deadlines and interrupted-request disconnect passed\n")
+        } catch (_: Exception) {
+            result.putString("parent_client_probe", "failed"); result.putString("observation", stage)
+        } finally {
+            if (touched) {
+                try { vault.clear(); KeyStore.getInstance("AndroidKeyStore").apply { load(null); deleteEntry("app-control.$name") } }
+                catch (_: Exception) { result.putString("parent_client_probe", "failed"); result.putString("observation", "cleanup") }
+>>>>>>> origin/main
             }
         }
         return result

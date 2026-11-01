@@ -4,7 +4,10 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+<<<<<<< HEAD
 import android.os.Build
+=======
+>>>>>>> origin/main
 import java.time.Instant
 
 object ScheduleAlarm {
@@ -17,7 +20,11 @@ object ScheduleAlarm {
         var mode = "none"
         if (next != null) {
             val trigger = maxOf(next.toEpochMilli(), System.currentTimeMillis() + 1000)
+<<<<<<< HEAD
             if (Build.VERSION.SDK_INT < 31 || manager.canScheduleExactAlarms()) {
+=======
+            if (manager.canScheduleExactAlarms()) {
+>>>>>>> origin/main
                 try {
                     manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pending)
                     mode = "exact"

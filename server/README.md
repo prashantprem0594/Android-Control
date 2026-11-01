@@ -60,7 +60,11 @@ The versioned JSON API exposes:
 - `POST /v1/auth/logout` with an access-token Bearer header.
 - `GET /v1/auth/me` with an access-token Bearer header.
 
+<<<<<<< HEAD
 Passwords must contain 12 to 1024 bytes and are stored as self-describing Argon2id hashes using 64 MiB of memory, three iterations, and a random 16-byte salt. Access tokens expire after 15 minutes. Parent refresh tokens last 10 years by default and renew on each successful refresh, so normal use keeps the parent signed in until sign-out. Server-side revocation, lost local app data, or an expired refresh token still requires sign-in.
+=======
+Passwords must contain 12 to 1024 bytes and are stored as self-describing Argon2id hashes using 64 MiB of memory, three iterations, and a random 16-byte salt. Access tokens expire after 15 minutes. Refresh-token families expire after 30 days and do not slide beyond their original expiry.
+>>>>>>> origin/main
 
 Access and refresh tokens are random opaque values. SQLite stores only their SHA-256 hashes. A refresh succeeds once and rotates the token; reuse of a consumed refresh token revokes every access and refresh token in that family. Logout performs the same family-wide revocation. Failed logins are tracked in SQLite and block an email for 15 minutes after five failures within a 15-minute window.
 

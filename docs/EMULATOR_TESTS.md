@@ -1,5 +1,6 @@
 # Isolated Android tests
 
+<<<<<<< HEAD
 ## 26 October network acceptance update
 
 The network-pause runner now uses `10.0.2.2:19089` for both the selected fixture
@@ -49,6 +50,8 @@ probe passed. `wait-test-emulator.ps1` supplies this key when starting the daemo
 an already-running daemon retains its earlier key configuration. The physical
 device daemon on port 5037 was left untouched.
 
+=======
+>>>>>>> origin/main
 An Android 37 Google Play x86_64 AVD now runs from workspace `.tooling`, using
 the installed system image and WHPX. It is named `AppControlAcceptance`, uses
 console port 5580 and guest ADB port 5581, and has no visible window. The image

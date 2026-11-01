@@ -1,5 +1,6 @@
 # Parent application
 
+<<<<<<< HEAD
 29 October: **Background alert status** is available before and after sign-in. It distinguishes builds with continuous incoming-call alerts from builds without them, shows sign-in/notification/background-restriction state, and opens Android app settings. See [screen-off acceptance](SCREEN_OFF_ACCEPTANCE.md) for the real Redmi 14 5G test matrix. UI build/lint passes; real screen-off delivery remains pending.
 
 The optional parent Firebase variant now has a separate [authenticated event synchronization path](PARENT_FIREBASE_SYNC.md). Local implementation/build checks do not establish live Firebase or OEM delivery. The bounded foreground watch below remains separate.
@@ -8,6 +9,11 @@ The optional parent Firebase variant now has a separate [authenticated event syn
 
 The optional [incoming-call watch](PARENT_CALL_ALERTS.md) supplies bounded
 parent-side alerts and fresh exact-call review. Continuous push delivery and physical call acceptance remain open; notification/watch runtime passes on the isolated AVD.
+=======
+The optional [incoming-call watch](PARENT_CALL_ALERTS.md) supplies bounded
+parent-side alerts and fresh exact-call review. Continuous push delivery and
+runtime notification/call acceptance remain open.
+>>>>>>> origin/main
 
 Parent-managed [contact shortcuts and Call Parent](CALL_CONTACTS.md) are available
 from the device screen. Saving confirms server state; child delivery awaits sync.
@@ -26,8 +32,11 @@ Back up the database before an operational upgrade.
   dialer role, VPN consent and exact-alarm access.
 - Request an internet pause, select inventory-backed app blocks and
   always-allowed apps, and add/edit/remove explicit-zone weekly schedules.
+<<<<<<< HEAD
 - Request that the child open a reported launchable app or Android Settings.
   Android shows a child-side notification and requires the child user to tap it.
+=======
+>>>>>>> origin/main
 - Queue an idempotent 60-second lock command and inspect paged command history.
 - Revoke device credentials after an explicit confirmation.
 - Open private app updates when the operator configures update authority;
@@ -101,6 +110,7 @@ included in capability reports.
 
 ## Verification and remaining gates
 
+<<<<<<< HEAD
 The later 26 October production-screen run also passes active-device editing
 against a server-only synthetic enrollment: create/remove an explicit UTC weekly
 schedule, save/restore pause intent, show pending confirmation and unknown
@@ -127,12 +137,18 @@ app session, cleaned afterward. No physical phone is touched. This proves
 activity reopening in the same process; live process death/reboot and
 physical-phone acceptance remain unverified; the later active-device editing check is described above.
 
+=======
+>>>>>>> origin/main
 The Android 37 acceptance emulator passed vault checks for encryption, distinct
 nonces, non-exportability, origin binding, tamper rejection and clearing. Controlled
 connection-double checks passed origin use, bearer requests, concurrent refresh
 serialization, redirect refusal, uncertain-refresh handling and local logout.
 The launch screen rendered server/account/password, login and registration controls.
+<<<<<<< HEAD
 These component checks alone do not establish live TLS, server login, child enrollment or physical
+=======
+These checks do not establish live TLS, server login, child enrollment or physical
+>>>>>>> origin/main
 policy execution from the parent UI.
 
 The internally logged runners are `scripts/test-android-parent-session.ps1` and

@@ -57,6 +57,7 @@ schedule, last result, hashed command log and verified snapshot under that
 identity. Microsoft's [daily trigger XML example](https://learn.microsoft.com/en-us/windows/win32/taskschd/daily-trigger-example--xml-)
 documents the format. The exporter runs no registration command.
 
+<<<<<<< HEAD
 Verify an exported bundle without registering the task or running its launcher:
 
 ```powershell
@@ -90,6 +91,8 @@ Run positive and tampered fixtures through the logger:
 & .\scripts\run-logged.ps1 -TaskId P6-VERIFY-TEST -Category test -Command '& .\scripts\test-backup-task-bundle-verification.ps1'
 ```
 
+=======
+>>>>>>> origin/main
 A synthetic bundle exported successfully; XML/settings and launcher syntax
 checks passed without opening its nonexistent database/key. Task Scheduler
 in-memory schema validation was unavailable. No task was registered/executed.

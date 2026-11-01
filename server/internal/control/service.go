@@ -4,7 +4,10 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
+<<<<<<< HEAD
 	"encoding/base64"
+=======
+>>>>>>> origin/main
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -75,6 +78,7 @@ func (s *Service) QueueLockWithKey(ctx context.Context, parentID, deviceID strin
 	return s.queueCommand(ctx, parentID, deviceID, "LOCK_DEVICE", json.RawMessage(`{}`), ttlSeconds, 3600, key)
 }
 
+<<<<<<< HEAD
 func (s *Service) QueueOpenApp(ctx context.Context, parentID, deviceID, pkg string, ttlSeconds int, key string) (Command, error) {
 	if len(pkg) > 255 || !packageName.MatchString(pkg) {
 		return Command{}, ErrInvalid
@@ -154,6 +158,8 @@ func (s *Service) queueRemoteGesture(ctx context.Context, parentID, deviceID str
 	return s.queueCommand(ctx, parentID, deviceID, "REMOTE_GESTURE", payload, ttlSeconds, 30, key)
 }
 
+=======
+>>>>>>> origin/main
 func (s *Service) QueueCallActionWithKey(ctx context.Context, parentID, deviceID, action, callID string, ttlSeconds int, key string) (Command, error) {
 	if !callIDPattern.MatchString(callID) {
 		return Command{}, ErrInvalid
@@ -199,7 +205,11 @@ func (s *Service) queueCommand(ctx context.Context, parentID, deviceID, commandT
 		if err := owned(ctx, tx, parentID, deviceID); err != nil {
 			return err
 		}
+<<<<<<< HEAD
 		if (commandType == "ANSWER_CALL" || commandType == "REJECT_CALL" || commandType == "END_CALL") && !s.remoteCallsEnabled {
+=======
+		if commandType != "LOCK_DEVICE" && !s.remoteCallsEnabled {
+>>>>>>> origin/main
 			return ErrRemoteCallDisabled
 		}
 		if key != "" {
@@ -226,6 +236,7 @@ func (s *Service) queueCommand(ctx context.Context, parentID, deviceID, commandT
 				return err
 			}
 		}
+<<<<<<< HEAD
 		if commandType == "OPEN_APP" {
 			var target struct {
 				PackageName string `json:"packageName"`
@@ -271,6 +282,9 @@ func (s *Service) queueCommand(ctx context.Context, parentID, deviceID, commandT
 				return ErrInvalid
 			}
 		} else if commandType == "ANSWER_CALL" || commandType == "REJECT_CALL" || commandType == "END_CALL" {
+=======
+		if commandType != "LOCK_DEVICE" {
+>>>>>>> origin/main
 			var action struct {
 				CallID string `json:"callId"`
 			}
@@ -280,12 +294,15 @@ func (s *Service) queueCommand(ctx context.Context, parentID, deviceID, commandT
 			if err := s.requireCurrentCall(ctx, tx, deviceID, action.CallID, commandType, now); err != nil {
 				return err
 			}
+<<<<<<< HEAD
 		} else if commandType == "LOCK_DEVICE" {
 			if string(payload) != `{}` {
 				return ErrInvalid
 			}
 		} else {
 			return ErrInvalid
+=======
+>>>>>>> origin/main
 		}
 		var requestKey any
 		if key != "" {
@@ -301,6 +318,7 @@ func (s *Service) queueCommand(ctx context.Context, parentID, deviceID, commandT
 	return command, err
 }
 
+<<<<<<< HEAD
 func validRemoteGesture(action string, x, y, endX, endY, duration int, payload []byte) bool {
 	var raw map[string]json.RawMessage
 	if json.Unmarshal(payload, &raw) != nil {
@@ -394,6 +412,8 @@ func (s *Service) RemoteScreen(ctx context.Context, parentID, deviceID, commandI
 	return screen, err
 }
 
+=======
+>>>>>>> origin/main
 type Policy struct {
 	FormatVersion         int           `json:"formatVersion"`
 	Version               int64         `json:"version"`

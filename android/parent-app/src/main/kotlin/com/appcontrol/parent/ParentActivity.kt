@@ -3,10 +3,14 @@ package com.appcontrol.parent
 import android.app.Activity
 import android.app.AlertDialog
 import android.os.Bundle
+<<<<<<< HEAD
 import android.os.Handler
 import android.os.Looper
 import android.graphics.Color
 import android.graphics.BitmapFactory
+=======
+import android.graphics.Color
+>>>>>>> origin/main
 import android.text.InputType
 import android.view.WindowManager
 import android.widget.*
@@ -15,6 +19,7 @@ import org.json.JSONObject
 import java.time.ZoneId
 import java.util.UUID
 import java.util.concurrent.Executors
+<<<<<<< HEAD
 import com.appcontrol.transport.LocalNetworkAccess
 import com.appcontrol.parent.push.ParentPushWork
 import com.appcontrol.transport.AppAppearance
@@ -22,6 +27,8 @@ import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.ViewGroup
 import android.view.MotionEvent
+=======
+>>>>>>> origin/main
 
 /** Parent workflows use observed server/device state; writes only confirm saved intent. */
 class ParentActivity : Activity() {
@@ -32,12 +39,18 @@ class ParentActivity : Activity() {
     private var busy = false
     private var generation = 0
     private var pendingWatchDevice: String? = null
+<<<<<<< HEAD
     private val primary = Color.rgb(49, 91, 219)
     private val muted = Color.rgb(101, 115, 139)
     private fun dp(value: Int) = AppAppearance.dp(this, value.toFloat())
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         AppAppearance.prepare(this)
+=======
+    private val teal = Color.rgb(0, 99, 94)
+    override fun onCreate(state: Bundle?) {
+        super.onCreate(state)
+>>>>>>> origin/main
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         client = ParentClient(this)
         if (client.hasSession()) { if (!openCallAlert(intent)) loadDevices() } else login()
@@ -46,10 +59,13 @@ class ParentActivity : Activity() {
         super.onNewIntent(intent); setIntent(intent)
         if (client.hasSession()) openCallAlert(intent) else login()
     }
+<<<<<<< HEAD
     override fun onResume() {
         super.onResume()
         if (::client.isInitialized && client.hasSession()) runCatching { ParentPushWork.schedule(this) }
     }
+=======
+>>>>>>> origin/main
     private fun openCallAlert(source: android.content.Intent): Boolean {
         if (source.action != CallWatchService.ACTION_REVIEW) return false
         val id = source.getStringExtra(CallWatchService.EXTRA_DEVICE) ?: return false
@@ -65,6 +81,7 @@ class ParentActivity : Activity() {
     override fun onDestroy() { generation++; worker.shutdownNow(); super.onDestroy() }
     private fun page(title: String) {
         generation++
+<<<<<<< HEAD
         column = AppAppearance.column(this)
         val pageColumn = column
         val frame = FrameLayout(this).apply {
@@ -112,12 +129,27 @@ class ParentActivity : Activity() {
             text(title, 25).setTextColor(Color.WHITE)
             text(detail, 14).apply { setTextColor(Color.rgb(229, 236, 255)); setLineSpacing(dp(3).toFloat(), 1f) }
         }
+=======
+        column = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; setPadding(28, 32, 28, 32)
+            setBackgroundColor(Color.rgb(246, 249, 248))
+        }
+        val scroll = ScrollView(this).apply { addView(column) }; setContentView(scroll)
+        text("APP CONTROL", 13).setTextColor(teal)
+        text(title, 27)
+        notice = text("", 15)
+    }
+    private fun text(value: String, size: Int = 16): TextView = TextView(this).apply {
+        text = value; textSize = size.toFloat(); setTextColor(Color.rgb(28, 49, 47))
+        setPadding(0, 10, 0, 10); column.addView(this)
+>>>>>>> origin/main
     }
     private fun field(label: String, value: String = "", password: Boolean = false): EditText {
         text(label, 14)
         return EditText(this).apply {
             setText(value); setSingleLine(true); isSaveEnabled = false
             inputType = if (password) InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD else InputType.TYPE_CLASS_TEXT
+<<<<<<< HEAD
             AppAppearance.styleField(this)
             column.addView(this, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(12) })
         }
@@ -130,6 +162,16 @@ class ParentActivity : Activity() {
     }
     private fun <T> task(action: () -> T, complete: (T) -> Unit) = task(action, complete, null)
     private fun <T> task(action: () -> T, complete: (T) -> Unit, onFailure: ((Throwable) -> Unit)?) {
+=======
+            column.addView(this)
+        }
+    }
+    private fun button(label: String, action: () -> Unit): Button = Button(this).apply {
+        text = label; isAllCaps = false; minHeight = 52
+        setOnClickListener { if (!busy) action() }; column.addView(this)
+    }
+    private fun <T> task(action: () -> T, complete: (T) -> Unit) {
+>>>>>>> origin/main
         if (busy) return
         busy = true; notice.text = "Connecting…"
         val expected = generation
@@ -143,6 +185,7 @@ class ParentActivity : Activity() {
                     runCatching { complete(value) }.onFailure { notice.text = "The server response could not be displayed. Refresh or sign in again." }
                 }, { failure ->
                     if (failure is ParentClient.SignInRequired) { login(); notice.text = "Your session ended. Please sign in again." }
+<<<<<<< HEAD
                     else {
                         notice.text = when ((failure as? ParentClient.RequestFailure)?.status) {
                             400 -> "Check the details and try again. Protected or unknown apps cannot be blocked."
@@ -153,6 +196,15 @@ class ParentActivity : Activity() {
                             else -> "Could not complete the request. Check the server address and connection."
                         }
                         onFailure?.invoke(failure)
+=======
+                    else notice.text = when ((failure as? ParentClient.RequestFailure)?.status) {
+                        400 -> "Check the details and try again. Protected or unknown apps cannot be blocked."
+                        401 -> "Email or password was not accepted."
+                        404 -> "This device is unavailable. Refresh the device list."
+                        409 -> "The saved state changed. Refresh before trying again."
+                        429 -> "Too many requests. Wait a minute and try again."
+                        else -> "Could not complete the request. Check the server address and connection."
+>>>>>>> origin/main
                     }
                 })
             }
@@ -160,6 +212,7 @@ class ParentActivity : Activity() {
     }
     private fun login() {
         stopService(android.content.Intent(this, CallWatchService::class.java))
+<<<<<<< HEAD
         runCatching { ParentPushWork.stop(this) }
         page("Welcome back")
         notice.setPadding(0, 0, 0, dp(4))
@@ -184,10 +237,29 @@ class ParentActivity : Activity() {
         localNetworkSetup()
         text("Lost your password? Your verified server operator can reset it and revoke old parent sessions. Then sign in with the new password.", 13)
         button("Background alert status") { backgroundAlertStatus() }
+=======
+        page("Your family devices")
+        text("Sign in to your private control server.")
+        val server = field("HTTPS server", client.server()).apply { isEnabled = BuildConfig.SERVER_ORIGIN.isEmpty() }
+        val email = field("Email").apply { inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS }
+        val password = field("Password", password = true)
+        button("Sign in") {
+            val secret = password.text.toString(); password.setText("")
+            val address = server.text.toString(); val account = email.text.toString()
+            task({ client.login(address, account, secret) }) { loadDevices() }
+        }
+        button("Create parent account") {
+            val secret = password.text.toString(); password.setText("")
+            val address = server.text.toString(); val account = email.text.toString()
+            task({ client.register(address, account, secret) }) { notice.text = "Account created. Enter your password to sign in." }
+        }
+        text("Lost your password? Your verified server operator can reset it and revoke old parent sessions. Then sign in with the new password.", 13)
+>>>>>>> origin/main
         if (BuildConfig.UPDATE_PUBLIC_KEY.isNotEmpty()) button("App updates") { startActivity(android.content.Intent(this, UpdateActivity::class.java)) }
     }
     private fun loadDevices(after: String = "") {
         page("Your devices")
+<<<<<<< HEAD
         hero("Your family,\nin one place.", "Choose a device to review its latest reported state, manage routines or check call requests.")
         val recoveryArea = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         column.addView(recoveryArea)
@@ -339,6 +411,40 @@ class ParentActivity : Activity() {
     }
     private fun setOf(values: JSONArray?): MutableSet<String> = (0 until (values?.length() ?: 0)).map { values!!.getString(it) }.toMutableSet()
     private fun loadDevice(id: String, name: String, message: String? = null) {
+=======
+        if (BuildConfig.UPDATE_PUBLIC_KEY.isNotEmpty()) button("App updates") { startActivity(android.content.Intent(this, UpdateActivity::class.java)) }
+        button("Refresh") { loadDevices() }
+        button("Enroll a device") {
+            task({ client.pairingCode() }) { code ->
+                AlertDialog.Builder(this).setTitle("Enroll the child app")
+                    .setMessage("Open enrollment in the child app and enter this code:\n\n${code.getString("code")}\n\nExpires: ${code.getString("expiresAt")}\n\nRefresh this list after enrollment.")
+                    .setPositiveButton("Done", null).show()
+            }
+        }
+        button("Sign out") {
+            stopService(android.content.Intent(this, CallWatchService::class.java))
+            task({ client.logout() }) { revoked ->
+                login(); notice.text = if (revoked) "Signed out." else "Signed out on this phone. Server session revocation could not be confirmed."
+            }
+        }
+        task({ client.devices(after) }) { response ->
+            val devices = response.getJSONArray("devices")
+            if (devices.length() == 0) text("No devices on this page. Enroll the child app to get started.")
+            for (index in 0 until devices.length()) {
+                val device = devices.getJSONObject(index)
+                val name = device.getString("displayName"); val state = device.getString("state")
+                button("$name · $state") {
+                    if (state == "active") loadDevice(device.getString("id"), name)
+                    else notice.text = "This device is $state. Controls require active enrollment."
+                }
+            }
+            response.optString("nextCursor").takeIf { it.isNotEmpty() }?.let { cursor -> button("Next page") { loadDevices(cursor) } }
+            if (after.isNotEmpty()) button("First page") { loadDevices() }
+        }
+    }
+    private fun setOf(values: JSONArray?): MutableSet<String> = (0 until (values?.length() ?: 0)).map { values!!.getString(it) }.toMutableSet()
+    private fun loadDevice(id: String, name: String) {
+>>>>>>> origin/main
         page(name); button("All devices") { loadDevices() }
         task({ Triple(client.policy(id), client.apps(id), client.status(id)) }) { (policy, inventory, status) ->
             renderDevice(id, name, policy, inventory)
@@ -354,9 +460,14 @@ class ParentActivity : Activity() {
                     ContactFreshness.State.CLOCK_CHANGED -> "Server clock changed; contact freshness is uncertain"
                     else -> "Contact freshness unavailable"
                 }, 18)
+<<<<<<< HEAD
                 text("Last child contact: ${status.getString("receivedAt")}\nAndroid API ${capabilities.getInt("androidApi")}\nDevice Owner: ${capabilities.getBoolean("deviceOwner")} · Dialer role: ${capabilities.getBoolean("dialerRole")}\nVPN consent: ${capabilities.getBoolean("vpnConsent")} · Exact alarms: ${capabilities.getBoolean("exactAlarms")}\nConnectivity: ${if (capabilities.optBoolean("networkConnected")) "online" else "offline"} · Wi-Fi: ${capabilities.optBoolean("wifiConnected")} · Mobile: ${capabilities.optBoolean("cellularConnected")} · VPN: ${capabilities.optBoolean("vpnActive")}", 14)
             }
             if (message != null) notice.text = message
+=======
+                text("Last child contact: ${status.getString("receivedAt")}\nAndroid API ${capabilities.getInt("androidApi")}\nDevice Owner: ${capabilities.getBoolean("deviceOwner")} · Dialer role: ${capabilities.getBoolean("dialerRole")}\nVPN consent: ${capabilities.getBoolean("vpnConsent")} · Exact alarms: ${capabilities.getBoolean("exactAlarms")}", 14)
+            }
+>>>>>>> origin/main
         }
     }
     private fun remoteCalls(id: String, name: String, onlyCallId: String? = null) {
@@ -444,6 +555,7 @@ class ParentActivity : Activity() {
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+<<<<<<< HEAD
         if (requestCode == 5738) {
             if (ParentPushWork.notificationsAllowed(this)) {
                 runCatching { ParentPushWork.schedule(this) }
@@ -454,6 +566,8 @@ class ParentActivity : Activity() {
             notice.text = if (LocalNetworkAccess.granted(this)) "Home-network server access is allowed. Retry your request."
                 else "Home-network server access was not allowed. You can enable it in Android app permissions when needed."
         }
+=======
+>>>>>>> origin/main
         if (requestCode == 5603) {
             val id = pendingWatchDevice
             pendingWatchDevice = null
@@ -461,6 +575,7 @@ class ParentActivity : Activity() {
             else notice.text = "Notifications are required for call watch. You can still refresh call state here."
         }
     }
+<<<<<<< HEAD
     private fun localNetworkSetup() {
         if (!LocalNetworkAccess.supported(this)) return
         text("For a server on your home network, allow local-network access.", 13)
@@ -475,6 +590,8 @@ class ParentActivity : Activity() {
         LocalNetworkAccess.request(this, 5737)
         return true
     }
+=======
+>>>>>>> origin/main
     private fun startCallWatch(id: String) {
         val notifications = getSystemService(android.app.NotificationManager::class.java)
         if (!notifications.areNotificationsEnabled()) { notice.text = "Enable parent app notifications in Android settings before starting call watch."; return }
@@ -501,6 +618,7 @@ class ParentActivity : Activity() {
         submitCallAction(id, callId, action, 20, record.getString("key"))
     }
     private fun submitCallAction(id: String, callId: String, action: String, ttlSeconds: Int, key: String) {
+<<<<<<< HEAD
         task({
             try { client.callAction(id, callId, action, ttlSeconds, key) }
             catch (failure: ParentClient.RequestFailure) {
@@ -513,6 +631,9 @@ class ParentActivity : Activity() {
                 notice.text = "The call changed before this request could be queued. Refresh call state before choosing another action."
                 return@task
             }
+=======
+        task({ client.callAction(id, callId, action, ttlSeconds, key) }) { command ->
+>>>>>>> origin/main
             val commandId = command.getString("commandId")
             check(getSharedPreferences("parent-call-history", MODE_PRIVATE).edit().putString(id, commandId).commit())
             check(getSharedPreferences("parent-pending-call", MODE_PRIVATE).edit().remove(id).commit())
@@ -526,6 +647,7 @@ class ParentActivity : Activity() {
         }
     }
     private fun renderDevice(id: String, name: String, policy: JSONObject, inventory: JSONObject) {
+<<<<<<< HEAD
         card("Policy status") {
             text("Requested policy version ${policy.getLong("version")}", 18)
             val report = policy.optJSONObject("reported")
@@ -536,10 +658,21 @@ class ParentActivity : Activity() {
             if (report != null) text("Last report: ${report.optString("result")} · ${report.optString("reportedAt")}\n${report.optString("reason")}", 13)
             text("A report records the last observation; it does not prove the device is currently online or that real call handling has passed.", 13)
         }
+=======
+        text("Requested policy version ${policy.getLong("version")}", 18)
+        val report = policy.optJSONObject("reported")
+        val confirmed = report != null && report.optLong("version", -1) == policy.getLong("version") &&
+            report.optString("result") == "applied" && report.optString("stateKey").isNotEmpty() &&
+            report.optString("stateKey") == policy.optString("effectiveStateKey")
+        text(if (confirmed) "Child confirmed the current effective policy." else "Pending confirmation of the current effective policy.")
+        if (report != null) text("Last report: ${report.optString("result")} · ${report.optString("reportedAt")}\n${report.optString("reason")}", 13)
+        text("A report records the last observation; it does not prove the device is currently online or that real call handling has passed.", 13)
+>>>>>>> origin/main
         button("Refresh device state") { loadDevice(id, name) }
         button("Foreground calls") { remoteCalls(id, name) }
         button("Call contacts and Call Parent") { callContacts(id, name) }
         button("Command history") { commandHistory(id, name) }
+<<<<<<< HEAD
         card("Apps & routines") {
             text("Changes are requests until the child confirms them.", 13)
             val paused = Switch(this).apply {
@@ -588,10 +721,42 @@ class ParentActivity : Activity() {
             }
         }
         text("Device access", 20)
+=======
+        val paused = Switch(this).apply { text = "Request internet pause"; isChecked = policy.getBoolean("internetPaused"); column.addView(this) }
+        val blocked = setOf(policy.optJSONArray("blockedPackages"))
+        val allowed = setOf(policy.optJSONArray("alwaysAllowedPackages"))
+        val apps = inventory.getJSONArray("apps")
+        text("App inventory: ${inventory.optString("updatedAt", "not received")}", 13)
+        button("Choose blocked apps (${blocked.size})") { chooseApps(apps, blocked, true) }
+        button("Choose always-allowed apps (${allowed.size})") { chooseApps(apps, allowed, false) }
+        text("Always-allowed apps take precedence over blocks and schedules.", 13)
+        val schedules = policy.optJSONArray("schedules") ?: JSONArray()
+        val rules = (0 until schedules.length()).map { JSONObject(schedules.getJSONObject(it).toString()) }.toMutableList()
+        val scheduleSummary = text("")
+        fun describe() { scheduleSummary.text = if (rules.isEmpty()) "No schedules." else rules.joinToString("\n") { "${it.getString("id")} · ${it.getString("timeZone")} · ${clock(it.getInt("startMinute"))}–${clock(it.getInt("endMinute"))}" } }
+        describe()
+        button("Add or edit schedule") {
+            val choices = arrayOf("New schedule") + rules.map { it.getString("id") }
+            AlertDialog.Builder(this).setTitle("Schedule").setItems(choices) { _, index ->
+                editSchedule(apps, rules, if (index == 0) null else rules[index - 1]) { describe() }
+            }.show()
+        }
+        button("Remove a schedule") {
+            if (rules.isEmpty()) return@button
+            AlertDialog.Builder(this).setTitle("Remove schedule").setItems(rules.map { it.getString("id") }.toTypedArray()) { _, index -> rules.removeAt(index); describe() }.show()
+        }
+        button("Save requested policy") {
+            val body = JSONObject().put("expectedVersion", policy.getLong("version")).put("internetPaused", paused.isChecked)
+                .put("blockedPackages", JSONArray(blocked.sorted())).put("alwaysAllowedPackages", JSONArray(allowed.sorted()))
+                .put("schedules", JSONArray(rules))
+            task({ client.savePolicy(id, body) }) { loadDevice(id, name); notice.text = "Request saved. Awaiting child confirmation." }
+        }
+>>>>>>> origin/main
         button("Lock device") {
             AlertDialog.Builder(this).setTitle("Lock $name?").setMessage("The command expires after 60 seconds. Success requires a child acknowledgement.")
                 .setNegativeButton("Cancel", null).setPositiveButton("Request lock") { _, _ -> queueLock(id, name) }.show()
         }
+<<<<<<< HEAD
         button("Remote assistance") { remoteAssistance(id, name) }
         button("View latest shared location") {
             task({ client.visibleLocation(id) }) { location ->
@@ -604,6 +769,8 @@ class ParentActivity : Activity() {
                 }
             }
         }
+=======
+>>>>>>> origin/main
         val history = getSharedPreferences("parent-command-history", MODE_PRIVATE)
         val last = history.getString(id, null)
         if (last != null) button("Check last lock command") {
@@ -614,6 +781,7 @@ class ParentActivity : Activity() {
                 .setNegativeButton("Cancel", null).setPositiveButton("Revoke") { _, _ -> task({ client.revoke(id) }) { loadDevices() } }.show()
         }
     }
+<<<<<<< HEAD
     private fun remoteAssistance(id: String, name: String) {
         page("Remote assistance")
         button("Back to $name") { loadDevice(id, name) }
@@ -755,6 +923,8 @@ class ParentActivity : Activity() {
                 }
             }.show()
     }
+=======
+>>>>>>> origin/main
     private fun callContacts(id: String, name: String, savedVersion: Long? = null) {
         page("Call contact shortcuts")
         button("Back to $name") { loadDevice(id, name) }
@@ -770,8 +940,13 @@ class ParentActivity : Activity() {
             fun edit(index: Int?) {
                 val existing = index?.let { entries[it] }
                 val form = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(24, 12, 24, 12) }
+<<<<<<< HEAD
                 val label = EditText(this).apply { hint = "Contact name"; setSingleLine(true); isSaveEnabled = false; setText(existing?.getString("label") ?: ""); AppAppearance.styleField(this); form.addView(this) }
                 val number = EditText(this).apply { hint = "International number (+country code)"; inputType = InputType.TYPE_CLASS_PHONE; setSingleLine(true); isSaveEnabled = false; setText(existing?.getString("number") ?: ""); AppAppearance.styleField(this); form.addView(this) }
+=======
+                val label = EditText(this).apply { hint = "Contact name"; setSingleLine(true); isSaveEnabled = false; setText(existing?.getString("label") ?: ""); form.addView(this) }
+                val number = EditText(this).apply { hint = "International number (+country code)"; inputType = InputType.TYPE_CLASS_PHONE; setSingleLine(true); isSaveEnabled = false; setText(existing?.getString("number") ?: ""); form.addView(this) }
+>>>>>>> origin/main
                 val primary = CheckBox(this).apply { text = "Use for Call Parent"; isChecked = existing?.getBoolean("isParent") == true; form.addView(this) }
                 val error = TextView(this).apply { form.addView(this) }
                 val dialog = AlertDialog.Builder(this).setTitle(if (index == null) "Add contact" else "Edit contact")
@@ -797,6 +972,7 @@ class ParentActivity : Activity() {
             redraw = {
                 list.removeAllViews()
                 for ((index, entry) in entries.withIndex()) {
+<<<<<<< HEAD
                     list.addView(AppAppearance.text(this, entry.getString("label") + (if (entry.getBoolean("isParent")) " (Call Parent)" else "") + "\n" + entry.getString("number"), 17f, true))
                     list.addView(Button(this).apply { text = "Edit"; AppAppearance.styleButton(this, false); setOnClickListener { if (!busy) edit(index) } })
                     list.addView(Button(this).apply { text = "Remove"; AppAppearance.styleButton(this, false); setOnClickListener { if (!busy) { entries.removeAt(index); redraw() } } })
@@ -805,6 +981,16 @@ class ParentActivity : Activity() {
             }
             redraw()
             button("Save contact shortcuts", true) {
+=======
+                    list.addView(TextView(this).apply { text = entry.getString("label") + (if (entry.getBoolean("isParent")) " (Call Parent)" else "") + "\n" + entry.getString("number") })
+                    list.addView(Button(this).apply { text = "Edit"; setOnClickListener { if (!busy) edit(index) } })
+                    list.addView(Button(this).apply { text = "Remove"; setOnClickListener { if (!busy) { entries.removeAt(index); redraw() } } })
+                }
+                list.addView(Button(this).apply { text = "Add contact"; isEnabled = entries.size < 10; setOnClickListener { if (!busy && entries.size < 10) edit(null) } })
+            }
+            redraw()
+            button("Save contact shortcuts") {
+>>>>>>> origin/main
                 task({ client.saveCallContacts(id, version, JSONArray(entries)) }) { result ->
                     // Reload before further editing: an ambiguous/stale write must never be blindly retried.
                     callContacts(id, name, result.getLong("version"))
@@ -820,7 +1006,11 @@ class ParentActivity : Activity() {
         task({ client.lock(id, key) }) { command ->
             check(getSharedPreferences("parent-command-history", MODE_PRIVATE).edit().putString(id, command.getString("commandId")).commit())
             check(pending.edit().remove(id).commit())
+<<<<<<< HEAD
             loadDevice(id, name, "Lock command: ${command.getString("status")}. Awaiting child result.")
+=======
+            loadDevice(id, name); notice.text = "Lock command: ${command.getString("status")}. Awaiting child result."
+>>>>>>> origin/main
         }
     }
     private fun commandHistory(id: String, name: String, after: String = "") {
@@ -851,7 +1041,11 @@ class ParentActivity : Activity() {
     private fun clock(minute: Int) = "%02d:%02d".format(minute / 60, minute % 60)
     private fun editSchedule(apps: JSONArray, rules: MutableList<JSONObject>, existing: JSONObject?, changed: () -> Unit) {
         val form = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(24, 8, 24, 8) }
+<<<<<<< HEAD
         fun input(hint: String, value: String = "") = EditText(this).apply { this.hint = hint; setText(value); setSingleLine(true); AppAppearance.styleField(this); form.addView(this) }
+=======
+        fun input(hint: String, value: String = "") = EditText(this).apply { this.hint = hint; setText(value); setSingleLine(true); form.addView(this) }
+>>>>>>> origin/main
         val id = input("Schedule ID", existing?.getString("id") ?: "").apply { isEnabled = existing == null }
         val zone = input("Time zone", existing?.getString("timeZone") ?: ZoneId.systemDefault().id)
         val existingDays = existing?.getJSONArray("daysOfWeek")

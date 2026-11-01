@@ -1,5 +1,6 @@
 # Completed work
 
+<<<<<<< HEAD
 ## Android 17 home-network access and current release fixtures - 26 October 2026
 
 Both apps now declare ACCESS_LOCAL_NETWORK and expose explicit foreground setup. Known private origins stop for consent before requests; private DNS deployments have the same setup button. Production HTTPS origin/pin validation is unchanged. Child setup uses a secure window and disables saved state for pairing/server/name fields.
@@ -140,6 +141,8 @@ All six unsigned parent/child configured fixture releases were refreshed after t
 - Repeated the two-clean-build comparison after all production-source fixes: current parent and child unsigned release APKs match. Current evidence: `.cache/release-repro-278c3408a4014f4fa3ddfa9d10248ce3/reproducibility.json`. Fixture origin/pins, polling child, default-disabled remote calls and unconfigured update authority remain the scope. Closed the session-launched emulator through its console serial after restoring runtime fixtures; AVD data retained.
 - Local evidence snapshot `.cache/evidence-20261025-be11b975c75d4048b9aefece74abf13e.zip` verifies all three dated logs, allowlisted inventory, sizes and hashes; wrong-digest refusal passes. SHA-256: `a44317a114f9dc35978e17e7c0a193a634ae6b0795a2bdd373dbf84d6c56ed10`. The archive predates this receipt and its own logged command entry by design. No off-host upload or production deployment performed.
 
+=======
+>>>>>>> origin/main
 ## Managed setup export review - 25 October 2026
 
 - Resumed the paused combined-export work. Added verified-payload preservation and verifier identity/hash tracking alongside the existing metadata/key/renderer guards.
@@ -230,7 +233,11 @@ All six unsigned parent/child configured fixture releases were refreshed after t
   test Firebase project and collect device evidence before changing either
   FCM acceptance gate.
 
+<<<<<<< HEAD
 ## APK inspection ï¿½ 24 October 2026
+=======
+## APK inspection � 24 October 2026
+>>>>>>> origin/main
 - Shared ReleaseArtifact verifier and conservative same-key/increasing-version upgrade guard implemented.
 - Parent app/test APK builds and Android 37 actual disposable-signed APK inspection pass, including signed metadata, debug/content and incompatible upgrade-baseline rejection.
 - Corrected private-storage ancestor path handling after an initial failed probe. Cleanup and test-fixture exclusion from application APKs pass.

@@ -12,6 +12,7 @@ apply(from = rootProject.file("server-trust.gradle.kts"))
 apply(from = rootProject.file("app-version.gradle.kts"))
 apply(from = rootProject.file("update-trust.gradle.kts"))
 
+<<<<<<< HEAD
 val parentFirebaseEnabled = providers.gradleProperty("appControlParentFirebase").orNull.let {
     require(it == null || it == "true" || it == "false") { "appControlParentFirebase must be true or false" }
     it == "true"
@@ -40,6 +41,8 @@ val parentFirebaseSettings = if (parentFirebaseEnabled) {
     }
 } else emptyMap()
 
+=======
+>>>>>>> origin/main
 android {
     namespace = "com.appcontrol.parent"
     compileSdk = 37
@@ -56,7 +59,10 @@ android {
         buildConfigField("String", "UPDATE_PUBLIC_KEY", "\"${project.extra["updatePublicKey"]}\"")
         buildConfigField("String", "UPDATE_CERTIFICATE_SHA256", "\"${project.extra["updateCertificateSHA256"]}\"")
         buildConfigField("int", "UPDATE_MIN_SEQUENCE", project.extra["updateMinimumSequence"].toString())
+<<<<<<< HEAD
         buildConfigField("boolean", "PARENT_PUSH_ENABLED", "false")
+=======
+>>>>>>> origin/main
     }
 
     buildTypes {
@@ -67,6 +73,7 @@ android {
                 "proguard-rules.pro",
             )
         }
+<<<<<<< HEAD
         if (parentFirebaseEnabled) {
             create("fcmDebug") {
                 initWith(getByName("debug"))
@@ -81,6 +88,8 @@ android {
                 parentFirebaseSettings.forEach { (name, value) -> buildConfigField("String", "PARENT_FIREBASE_$name", "\"$value\"") }
             }
         }
+=======
+>>>>>>> origin/main
     }
 
     compileOptions {
@@ -88,6 +97,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     sourceSets.getByName("androidTest").java.srcDir(rootProject.file("shared/src/androidTest/java"))
+<<<<<<< HEAD
     sourceSets.getByName("debug").kotlin.directories.add("src/noFirebase/kotlin")
     sourceSets.getByName("release").kotlin.directories.add("src/noFirebase/kotlin")
     if (parentFirebaseEnabled) {
@@ -96,11 +106,14 @@ android {
             sourceSets.getByName(variant).manifest.srcFile("src/firebase/AndroidManifest.xml")
         }
     }
+=======
+>>>>>>> origin/main
     providers.gradleProperty("appControlArtifactFixtureDir").orNull?.let {
         sourceSets.getByName("androidTest").assets.srcDir(it)
     }
 }
 
+<<<<<<< HEAD
 if (parentFirebaseEnabled) {
     dependencies {
         add("fcmDebugImplementation", "com.google.firebase:firebase-messaging:26.0.1")
@@ -111,11 +124,16 @@ if (parentFirebaseEnabled) {
 abstract class GenerateServerTrustResources : DefaultTask() {
     @get:Input abstract val xmlContent: Property<String>
     @get:Input abstract val developmentCaPem: Property<String>
+=======
+abstract class GenerateServerTrustResources : DefaultTask() {
+    @get:Input abstract val xmlContent: Property<String>
+>>>>>>> origin/main
     @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
     @TaskAction fun generate() {
         val target = outputDirectory.file("xml/server_trust.xml").get().asFile
         target.parentFile.mkdirs()
         target.writeText(xmlContent.get())
+<<<<<<< HEAD
         val developmentCa = outputDirectory.file("raw/appcontrol_development_ca.pem").get().asFile
         if (developmentCaPem.get().isNotEmpty()) {
             developmentCa.parentFile.mkdirs()
@@ -142,11 +160,14 @@ abstract class GenerateFirebaseOptionsResources : DefaultTask() {
     <string name="gcm_defaultSenderId" translatable="false">${senderId.get()}</string>
 </resources>
 """)
+=======
+>>>>>>> origin/main
     }
 }
 androidComponents.onVariants { variant ->
     variant.sources.java?.addStaticSourceDirectory(rootProject.file("shared/src/main/java").absolutePath)
     val generateTrust = tasks.register<GenerateServerTrustResources>("generate${variant.name.replaceFirstChar { it.uppercaseChar() }}ServerTrust") {
+<<<<<<< HEAD
         val development = variant.buildType == "debug" || variant.buildType == "fcmDebug"
         xmlContent.set(project.extra[if (development) "serverTrustDebugXml" else "serverTrustXml"] as String)
         developmentCaPem.set(if (development) project.extra["serverTrustDevelopmentCaPem"] as String else "")
@@ -161,4 +182,9 @@ androidComponents.onVariants { variant ->
         }
         variant.sources.res?.addGeneratedSourceDirectory(generateFirebaseOptions, GenerateFirebaseOptionsResources::outputDirectory)
     }
+=======
+        xmlContent.set(project.extra["serverTrustXml"] as String)
+    }
+    variant.sources.res?.addGeneratedSourceDirectory(generateTrust, GenerateServerTrustResources::outputDirectory)
+>>>>>>> origin/main
 }

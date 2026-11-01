@@ -45,6 +45,7 @@ class InternetPauseVpn : VpnService() {
 
     override fun onCreate() {
         super.onCreate()
+<<<<<<< HEAD
         registerChanges(IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED); addAction(Intent.ACTION_PACKAGE_REMOVED)
             addAction(Intent.ACTION_PACKAGE_CHANGED); addDataScheme("package")
@@ -53,15 +54,28 @@ class InternetPauseVpn : VpnService() {
             addAction(TelecomManager.ACTION_DEFAULT_DIALER_CHANGED)
             addAction("android.provider.action.DEFAULT_SMS_PACKAGE_CHANGED")
         })
+=======
+        registerReceiver(changes, IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED); addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_CHANGED); addDataScheme("package")
+        }, Context.RECEIVER_EXPORTED)
+        registerReceiver(changes, IntentFilter().apply {
+            addAction(TelecomManager.ACTION_DEFAULT_DIALER_CHANGED)
+            addAction("android.provider.action.DEFAULT_SMS_PACKAGE_CHANGED")
+        }, Context.RECEIVER_EXPORTED)
+>>>>>>> origin/main
         contentResolver.registerContentObserver(Settings.Secure.getUriFor(Settings.Secure.DEFAULT_INPUT_METHOD), false, roles)
         contentResolver.registerContentObserver(Settings.Secure.getUriFor(Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES), false, roles)
     }
 
+<<<<<<< HEAD
     private fun registerChanges(filter: IntentFilter) {
         if (Build.VERSION.SDK_INT >= 33) registerReceiver(changes, filter, Context.RECEIVER_EXPORTED)
         else registerReceiver(changes, filter)
     }
 
+=======
+>>>>>>> origin/main
     private fun requestRefresh() {
         if (destroyed) return
         refreshPending.set(true)
@@ -91,9 +105,14 @@ class InternetPauseVpn : VpnService() {
                 .setContentTitle("Internet pause active")
                 .setContentText("Managed apps are paused. Device management remains connected.")
                 .setContentIntent(openApp).setOngoing(true).build()
+<<<<<<< HEAD
             if (Build.VERSION.SDK_INT >= 34) startForeground(NOTIFICATION_ID, notification,
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED)
             else startForeground(NOTIFICATION_ID, notification)
+=======
+            startForeground(NOTIFICATION_ID, notification,
+                if (Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED else 0)
+>>>>>>> origin/main
         } catch (failure: Exception) {
             pending.remove(generation)?.complete(false)
             stopSelf(startId)

@@ -1,6 +1,10 @@
 # App Control
 
+<<<<<<< HEAD
 App Control is a privately distributed Android parental-control system for compatible fully managed Android devices, with Redmi phones as the current physical acceptance targets. The child app requires Android 9 or later; the parent app requires Android 13 or later. Broader device/feature acceptance remains pending. See [remaining work](docs/REMAINING_WORK.md).
+=======
+App Control is a privately distributed Android parental-control system for fully managed Redmi devices running Android 13 or later.
+>>>>>>> origin/main
 
 The product has four required controls:
 
@@ -28,6 +32,7 @@ Feasibility verification remains open while the server and child prototypes prog
 - Shared Android server-trust configuration with current/backup pins, a child origin gate and release configuration checks; see [server trust](docs/SERVER_TRUST.md).
 - Opt-in private update screens, signed metadata, APK staging/replay checks and user-confirmed installer sessions; production installation acceptance remains open. See [private updates](docs/PRIVATE_UPDATES.md).
 
+<<<<<<< HEAD
 Remote assistance currently provides consent-based, authenticated JPEG frame viewing and
 Accessibility-backed gestures. Smooth continuous WebRTC video remains future work. The
 repository has signaling/session metadata support, but Android WebRTC media integration,
@@ -39,14 +44,19 @@ For laptop development, ADB reverse mappings are maintained with
 the `localhost:8443` mapping automatically. Production deployments should use a reachable
 HTTPS server hostname instead of the laptop-only localhost profile.
 
+=======
+>>>>>>> origin/main
 The next acceptance gate requires a physical Redmi: enrollment, lock/app controls, network preservation, reboot recovery and real-call feasibility are not yet verified. See [device policies](docs/DEVICE_POLICIES.md) and the authoritative tracker for evidence and remaining work.
 
 The exact supported versions are pinned in [docs/TOOLCHAIN.md](docs/TOOLCHAIN.md).
 
+<<<<<<< HEAD
 The current [remaining-work checklist](docs/REMAINING_WORK.md) distinguishes completed local push/API/release checks from the device, Firebase, production and pilot acceptance still required.
 
 Both native apps now share [polished UI components](docs/UI_POLISH.md), with grouped setup/control screens, clearer primary actions and distinct launcher icons. The child installation baseline is Android 9/API28+, independent of the designated test-phone model; see [Android compatibility](docs/ANDROID_COMPATIBILITY.md) for feature requirements and testing limits.
 
+=======
+>>>>>>> origin/main
 ## Layout
 
 ```text

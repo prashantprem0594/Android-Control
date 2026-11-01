@@ -1,7 +1,10 @@
 package com.appcontrol.child.calls
 
 import android.os.Handler
+<<<<<<< HEAD
 import android.os.Build
+=======
+>>>>>>> origin/main
 import android.os.Looper
 import android.telecom.Call
 import android.telecom.VideoProfile
@@ -67,13 +70,21 @@ object CallRegistry {
                 details.hasProperty(Call.Details.PROPERTY_NETWORK_IDENTIFIED_EMERGENCY_CALL)
             val remoteAllowed = RemoteCallPermission.allowed(BuildConfig.REMOTE_CALLS_ENABLED, platformEmergency,
                 details.handle?.scheme, details.handle?.schemeSpecificPart) { address ->
+<<<<<<< HEAD
                 isEmergencyNumber(address)
+=======
+                service?.getSystemService(TelephonyManager::class.java)?.isEmergencyNumber(address) ?: true
+>>>>>>> origin/main
             }
             RemoteCallSnapshot(it.id, state(it.call).name, remoteAllowed)
         }
     }
 
+<<<<<<< HEAD
     fun state(call: Call): CallActionGate.State = when (if (Build.VERSION.SDK_INT >= 31) call.details.state else call.state) {
+=======
+    fun state(call: Call): CallActionGate.State = when (call.details.state) {
+>>>>>>> origin/main
         Call.STATE_RINGING, Call.STATE_SIMULATED_RINGING -> CallActionGate.State.RINGING
         Call.STATE_ACTIVE -> CallActionGate.State.ACTIVE
         Call.STATE_HOLDING -> CallActionGate.State.HOLDING
@@ -92,6 +103,7 @@ object CallRegistry {
         val platformEmergency = details.hasProperty(Call.Details.PROPERTY_EMERGENCY_CALLBACK_MODE) ||
             details.hasProperty(Call.Details.PROPERTY_NETWORK_IDENTIFIED_EMERGENCY_CALL)
         EmergencyCallGuard.isProtected(platformEmergency, details.handle?.scheme, details.handle?.schemeSpecificPart) {
+<<<<<<< HEAD
             isEmergencyNumber(it)
         }
     }.getOrDefault(true)
@@ -100,6 +112,12 @@ object CallRegistry {
         if (Build.VERSION.SDK_INT >= 29) service?.getSystemService(TelephonyManager::class.java)?.isEmergencyNumber(number) ?: true
         else android.telephony.PhoneNumberUtils.isEmergencyNumber(number)
 
+=======
+            service?.getSystemService(TelephonyManager::class.java)?.isEmergencyNumber(it) ?: true
+        }
+    }.getOrDefault(true)
+
+>>>>>>> origin/main
     private val port = object : CallActionGate.Calls {
         override fun lookup(id: String): CallActionGate.Snapshot? = entries[id]?.let {
             CallActionGate.Snapshot(it.id, state(it.call), emergency(it.call))

@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 package com.appcontrol.child.enrollment
 
 import android.content.Context
 import java.io.IOException
+=======
+﻿package com.appcontrol.child.enrollment
+
+import android.content.Context
+>>>>>>> origin/main
 import org.json.JSONObject
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
@@ -60,7 +66,11 @@ class EnrollmentClient(context: Context) {
             connection.setRequestProperty("Content-Type", "application/json")
             connection.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
             check(connection.responseCode in 200..299) { "Enrollment request failed (${connection.responseCode})" }
+<<<<<<< HEAD
             val bytes = connection.inputStream.use { com.appcontrol.transport.BoundedInput.read(it, 16 * 1024 + 1) }
+=======
+            val bytes = connection.inputStream.use { it.readNBytes(16 * 1024 + 1) }
+>>>>>>> origin/main
             check(bytes.size <= 16 * 1024) { "Server response too large" }
             return JSONObject(String(bytes, Charsets.UTF_8))
         } finally {

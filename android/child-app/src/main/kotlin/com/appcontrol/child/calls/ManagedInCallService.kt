@@ -94,8 +94,13 @@ class ManagedInCallService : InCallService() {
             try {
                 RemoteCallSnapshotSync(applicationContext).publish()
                 succeeded = true
+<<<<<<< HEAD
             } catch (_: Exception) {
                 Log.w("ManagedInCallService", "Call snapshot sync failed")
+=======
+            } catch (failure: Exception) {
+                Log.w("ManagedInCallService", "Call snapshot sync failed (${failure.javaClass.simpleName})")
+>>>>>>> origin/main
             }
             snapshotHandler.post {
                 snapshotPending = false
@@ -141,7 +146,11 @@ class ManagedInCallService : InCallService() {
         if (Build.VERSION.SDK_INT < 34) {
             val pending = pendingRoute
             val matching = if (pending?.startsWith("legacy:") == true) pending.removePrefix("legacy:").toIntOrNull() == state.route
+<<<<<<< HEAD
                 else if (pending?.startsWith("bluetooth:") == true && hasBluetoothPermission())
+=======
+                else if (pending?.startsWith("bluetooth:") == true && checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED)
+>>>>>>> origin/main
                     runCatching { state.route == CallAudioState.ROUTE_BLUETOOTH && state.activeBluetoothDevice == bluetoothChoices[pending] }.getOrDefault(false)
                 else false
             if (matching) { pendingRoute = null; routeCallId = null; routeRequestMessage = null }
@@ -150,7 +159,10 @@ class ManagedInCallService : InCallService() {
     }
 
     override fun onAvailableCallEndpointsChanged(availableEndpoints: MutableList<CallEndpoint>) {
+<<<<<<< HEAD
         if (Build.VERSION.SDK_INT < 34) return
+=======
+>>>>>>> origin/main
         super.onAvailableCallEndpointsChanged(availableEndpoints)
         endpoints = availableEndpoints.toList()
         if (pendingRoute?.startsWith("endpoint:") == true && endpoints.none { "endpoint:${it.identifier}" == pendingRoute }) {
@@ -160,7 +172,10 @@ class ManagedInCallService : InCallService() {
     }
 
     override fun onCallEndpointChanged(endpoint: CallEndpoint) {
+<<<<<<< HEAD
         if (Build.VERSION.SDK_INT < 34) return
+=======
+>>>>>>> origin/main
         super.onCallEndpointChanged(endpoint)
         if (CallRegistry.service !== this) return
         if (pendingRoute == "endpoint:${endpoint.identifier}") { pendingRoute = null; routeCallId = null; routeRequestMessage = null }
@@ -215,7 +230,11 @@ class ManagedInCallService : InCallService() {
                     if (state.supportedRouteMask and route != 0) choices.add(AudioChoice("legacy:$route", pair.first, pair.second))
                 }
                 if (state.supportedRouteMask and CallAudioState.ROUTE_BLUETOOTH != 0) {
+<<<<<<< HEAD
                     if (!hasBluetoothPermission())
+=======
+                    if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED)
+>>>>>>> origin/main
                         choices.add(AudioChoice("bluetooth-permission", "Allow Bluetooth audio access", "bluetooth", true))
                     else {
                         val devices = state.supportedBluetoothDevices.toList()
@@ -223,8 +242,12 @@ class ManagedInCallService : InCallService() {
                         devices.forEach { device ->
                             val id = bluetoothChoices.entries.firstOrNull { it.value == device }?.key
                                 ?: "bluetooth:${UUID.randomUUID()}".also { bluetoothChoices[it] = device }
+<<<<<<< HEAD
                             val name = try { device.name } catch (_: SecurityException) { null }
                             val label = name?.takeIf { it.isNotBlank() } ?: "Bluetooth device ${devices.indexOf(device) + 1}"
+=======
+                            val label = runCatching { device.name }.getOrNull()?.takeIf { it.isNotBlank() } ?: "Bluetooth device ${devices.indexOf(device) + 1}"
+>>>>>>> origin/main
                             choices.add(AudioChoice(id, label, "bluetooth"))
                         }
                     }
@@ -237,6 +260,7 @@ class ManagedInCallService : InCallService() {
     fun requestAudio(callId: String, choiceId: String): Boolean {
         val choice = audioChoices(callId).firstOrNull { it.id == choiceId && !it.requiresBluetoothPermission } ?: return false
         if (!active(callId)) return false
+<<<<<<< HEAD
         // Telecom need not send another endpoint-change callback for an output
         // that is already current. Do not leave redundant requests unconfirmed.
         // A different in-flight request must still be overridden through Telecom.
@@ -247,6 +271,8 @@ class ManagedInCallService : InCallService() {
             CallRegistry.changed()
             return true
         }
+=======
+>>>>>>> origin/main
         val generation = ++routeGeneration
         pendingRoute = choice.id; routeCallId = callId; routeRequestMessage = "Audio change requested; awaiting Telecom."
         fun failed() {
@@ -262,7 +288,11 @@ class ManagedInCallService : InCallService() {
                     override fun onError(error: CallEndpointException) { failed() }
                 })
             } else if (choice.id.startsWith("bluetooth:")) {
+<<<<<<< HEAD
                 check(hasBluetoothPermission())
+=======
+                check(checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED)
+>>>>>>> origin/main
                 val device = checkNotNull(bluetoothChoices[choice.id])
                 check(callAudioState?.supportedBluetoothDevices?.contains(device) == true)
                 requestBluetoothAudio(device)
@@ -278,9 +308,12 @@ class ManagedInCallService : InCallService() {
             true
         }.getOrElse { failed(); false }
     }
+<<<<<<< HEAD
     private fun hasBluetoothPermission(): Boolean =
         Build.VERSION.SDK_INT < 31 || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
 
+=======
+>>>>>>> origin/main
     fun requestSpeaker(callId: String, speaker: Boolean): Boolean {
         val choices = audioChoices(callId)
         val choice = if (speaker) choices.firstOrNull { it.kind == "speaker" }

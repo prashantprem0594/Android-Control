@@ -1,5 +1,6 @@
 # App Control: Android Studio handoff
 
+<<<<<<< HEAD
 ## Offline deployment package and phone readiness: 29 October 2026
 
 At user request, multiple agents implemented the next deployment/acceptance steps. Added `scripts/export-linux-deployment.ps1` and 14 passing export/refusal scenarios. Export requires a trusted original bundle manifest hash, independently verifies source artifacts, selects exactly four matching Linux ELF tools, and copies only allowlisted deployment/docs/license/metadata files into a new exclusive output. Actual AMD64 package: `.cache/linux-deployment-58b743b204804f8c9d14789c4a225ae5`, 26 files. `deployment.json` SHA256 `f1677cbfe2b8b80c4d6b6ecbd4e9259fb6a81708262d69eb096d9ddfb7fda81c`. Agent and root independently reverified hashes/sizes (`LINUX-DEPLOYMENT-EXPORT`, `LINUX-DEPLOYMENT-REAL`, `LINUX-DEPLOYMENT-FINAL`). No credentials or deployment included.
@@ -84,6 +85,8 @@ The user requested continuous work until completion. Hardware, production and el
 - Isolated AVD uses ADB server 5038 and serial `127.0.0.1:5581`. Revalidate executable path/arguments before stopping any recorded PID. Physical phone is parent-only: never reset, clear data, provision child Device Owner or run child policy/VPN/Telecom tests on it.
 - Copilot now owns server parent-push foundation work under docs/COPILOT_PARENT_PUSH_TASK.md. Avoid editing its server files. Review is complete; implementation and live delivery are separate gates. The old server bundle predates these edits and must be rebuilt/verified after Copilot finishes.
 - Remaining prerequisites include a separate child Redmi/test SIM, production HTTPS/signing/Firebase configuration, physical call/audio/emergency/dual-SIM acceptance, deployment/restore, 72-hour reliability and family pilot. Do independent local work while waiting; never fabricate those results.
+=======
+>>>>>>> origin/main
 ## Resume verification: 24 October 2026
 
 Android FCM integration continuation: optional Firebase source directories now
@@ -313,6 +316,7 @@ The main architecture documents are:
 
 ```text
 C:\App Control\
+<<<<<<< HEAD
 â”œâ”€â”€ android\                 Android Studio/Gradle project
 â”‚   â”œâ”€â”€ parent-app\          Parent Android application
 â”‚   â”œâ”€â”€ child-app\           Device Owner child application
@@ -328,6 +332,23 @@ C:\App Control\
 â”œâ”€â”€ logs\build\              Detailed dated command/output text logs
 â”œâ”€â”€ .cache\                  Disposable local build caches and server binary
 â””â”€â”€ ANDROID_STUDIO_HANDOFF.md This file
+=======
+├── android\                 Android Studio/Gradle project
+│   ├── parent-app\          Parent Android application
+│   ├── child-app\           Device Owner child application
+│   ├── gradle\wrapper\      Pinned Gradle wrapper
+│   ├── build.gradle.kts
+│   ├── settings.gradle.kts
+│   └── local.properties     Local SDK path; ignored by Git
+├── server\                  Self-hosted Go control server
+├── contracts\               Shared versioned protocol contracts
+├── docs\                    Architecture, plan, policies, dependencies
+├── tracking\                Machine-readable phase tracker
+├── scripts\                 Logged-command and progress scripts
+├── logs\build\              Detailed dated command/output text logs
+├── .cache\                  Disposable local build caches and server binary
+└── ANDROID_STUDIO_HANDOFF.md This file
+>>>>>>> origin/main
 ```
 
 Do not move only the `android` directory to a separate location. The sibling server, tracker, documentation, scripts, and logs are part of the same product and are required for a complete handoff.

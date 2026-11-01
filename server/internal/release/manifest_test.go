@@ -71,6 +71,7 @@ func TestSignedManifestBindsOriginSignerSequenceAndExpiry(t *testing.T) {
 		t.Fatal("altered signed metadata accepted")
 	}
 }
+<<<<<<< HEAD
 func TestChildAndroid9ReleaseMetadata(t *testing.T) {
 	manifest, now := fixture()
 	manifest.Apps[1].MinSDK = 28
@@ -95,6 +96,8 @@ func TestChildAndroid9ReleaseMetadata(t *testing.T) {
 		t.Fatal("unsupported parent SDK accepted")
 	}
 }
+=======
+>>>>>>> origin/main
 func TestManifestRejectsUnsafeArtifactAndLifetimeMetadata(t *testing.T) {
 	mutations := []func(*Manifest){
 		func(m *Manifest) { m.Apps[0].URL = "https://other.example.org/releases/7/parent-release.apk" },

@@ -1,5 +1,6 @@
 # Server binary bundles
 
+<<<<<<< HEAD
 Latest Linux preparation, 29 October 2026: `.cache/server-hosting-ece47e8caa4349f085e9e5b689470c01` independently verifies four Linux-amd64 tools, 142 source entries, ten module records and eleven license notices (`SERVER-HOSTING-BUNDLE`, logs/build/2026-10-29.txt). It includes the current parent wake-up sender hardening. See [Linux hosting templates](SERVER_HOSTING.md) for the separate service/proxy/backup assets. Cross-compilation and manifest verification do not establish native Linux runtime or live deployment.
 
 The current 26 October local bundle is
@@ -8,6 +9,8 @@ The current 26 October local bundle is
 The builder and independent verifier pass; see `logs/build/2026-10-26.txt`.
 This is a build/metadata checkpoint, not deployment or Linux runtime evidence.
 
+=======
+>>>>>>> origin/main
 `scripts/build-server-bundle.ps1` builds the server and matching administration,
 parent recovery and release-metadata tools from one source snapshot. It exports
 files only. It does not start a server, migrate a database, register a service or
@@ -35,6 +38,7 @@ Missing module license text fails bundle generation; the manifest records hashes
 for the copied notices. See [third-party license review](THIRD_PARTY_LICENSES.md)
 for the pinned server and provisioning QR dependency inventory.
 
+<<<<<<< HEAD
 Verify a completed bundle without executing its binaries or deploying it:
 
 ```powershell
@@ -60,6 +64,8 @@ Run its positive and tampered-bundle fixtures through the logging wrapper:
 & .\scripts\run-logged.ps1 -TaskId P7-VERIFY-TEST -Category test -Command '& .\scripts\test-server-bundle-verification.ps1'
 ```
 
+=======
+>>>>>>> origin/main
 Only `cmd`, `internal`, `go.mod` and `go.sum` enter the source inventory; embedded
 migrations are included. No source files, databases, keys or environment files
 are copied. `bundle.json` is a completion record, not a signature or proof of

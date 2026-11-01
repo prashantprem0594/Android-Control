@@ -15,7 +15,10 @@ data/
 *.db-shm
 *.db-wal
 .env
+<<<<<<< HEAD
 releases/app-history/
+=======
+>>>>>>> origin/main
 *.pem
 *.key
 *.jks

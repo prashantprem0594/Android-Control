@@ -20,7 +20,10 @@ class AppInventory(context: Context) {
                 .filterNot { it.isISOControl() }.take(128)
             result.put(JSONObject().put("packageName", info.packageName).put("label", label)
                 .put("system", system).put("blockable", !protected)
+<<<<<<< HEAD
                 .put("launchable", runCatching { manager.getLaunchIntentForPackage(info.packageName) != null }.getOrDefault(false))
+=======
+>>>>>>> origin/main
                 .put("suspended", info.flags and ApplicationInfo.FLAG_SUSPENDED != 0))
         }
         return result

@@ -5,8 +5,11 @@ replay-protection and installer-session code. Entries appear only with compiled
 update authority. There is no automatic installation, uninstall, data clearing
 or factory-reset operation.
 
+<<<<<<< HEAD
 Android 9 compatibility: the child release may declare minimum API 28; the parent remains API 33. Metadata validation and signing/staging tools use those separate floors. Private update verification still requires an available Ed25519 key/signature provider. If the platform lacks it, the update screen disables checking and directs the operator to install a signed update with Android's installer. Signature, signer and replay checks are never bypassed. Enrolled update continuity on the physical child remains unverified.
 
+=======
+>>>>>>> origin/main
 ## Build configuration
 
 Provide the existing HTTPS origin/current/backup TLS pins plus:
@@ -96,16 +99,23 @@ persistence and rejection/cleanup checks (`staging-replay-v1`). Local staging of
 real disposable-signed APKs and independently verified metadata passes; the
 disposable seed was removed. No publication or installation was performed.
 
+<<<<<<< HEAD
 Current parent and polling-child unsigned release APKs match across two clean
 offline builds after the updater/UI and full-lint fixes. The current proof uses
 fixture TLS settings with update authority unconfigured; see
 [release build evidence](RELEASE_BUILDS.md). That comparison is separate from
 the exported configuration check with update authority enabled, and from
 production signing or actual installation.
+=======
+Two clean release builds and isolated signing passed for an earlier source
+snapshot. Later updater/UI changes require final release verification; the
+earlier result does not establish reproducibility of current bits.
+>>>>>>> origin/main
 
 Production authority, live HTTPS transfer, installation prompts/callbacks,
 restart recovery, enrolled-device data preservation, rollback and Redmi
 acceptance remain open. The installer flow is compiled, not physically proven.
+<<<<<<< HEAD
 Local release checks do not satisfy the physical device matrix.
 
 On 25 October, `scripts/test-android-release-persistence.ps1` passes
@@ -118,3 +128,7 @@ different-binding payloads are rejected without rewriting the floor. Test
 preferences are cleaned up. Only public fixture envelopes are persisted;
 the preparation signing key stays in memory. This does not prove actual installer
 callback recovery, production key custody, a live download or enrolled updates.
+=======
+Broad regression/device-matrix runs are deferred under the current instruction
+to prioritize building features.
+>>>>>>> origin/main

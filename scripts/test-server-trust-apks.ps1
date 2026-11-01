@@ -29,12 +29,15 @@ foreach ($app in @('parent', 'child')) {
     if (-not (Test-ContainsProbe $testApk)) { throw 'TLS probe is absent from test APK.' }
     $fixtureClasses = if ($app -eq 'parent') { @('Lcom/appcontrol/parent/ParentSessionProbe;', 'Lcom/appcontrol/parent/ParentClientProbe;') } else { @('Lcom/appcontrol/child/ScheduleBoundaryProbe;', 'Lcom/appcontrol/child/PolicyUpgradeProbe;') }
     if ($app -eq 'child') { $fixtureClasses += 'Lcom/appcontrol/child/TelecomFixtureProbe;' }
+<<<<<<< HEAD
     if ($app -eq 'child') { $fixtureClasses += 'Lcom/appcontrol/child/TelecomRecoveryProbe;' }
     if ($app -eq 'child') { $fixtureClasses += 'Lcom/appcontrol/child/TelecomAudioProbe;' }
     if ($app -eq 'child') { $fixtureClasses += 'Lcom/appcontrol/child/InternetPauseNetworkProbe;' }
     if ($app -eq 'child') { $fixtureClasses += 'Lcom/appcontrol/child/CallContactCacheProbe;' }
     if ($app -eq 'child') { $fixtureClasses += 'Lcom/appcontrol/child/CallContactPersistenceProbe;' }
     if ($app -eq 'child') { $fixtureClasses += 'Lcom/appcontrol/child/Android9CompatibilityProbe;' }
+=======
+>>>>>>> origin/main
     if ($app -eq 'parent') { $fixtureClasses += 'Lcom/appcontrol/parent/ParentPersistenceProbe;' }
     if ($app -eq 'parent') { $fixtureClasses += 'Lcom/appcontrol/transport/ReleaseArtifactProbe;' }
     $assetArchive = [IO.Compression.ZipFile]::OpenRead($apk)
@@ -43,7 +46,10 @@ foreach ($app in @('parent', 'child')) {
     } finally { $assetArchive.Dispose() }
     if (Test-ContainsProbe $apk 'Lorg/example/appcontroltelecomfixture/FixtureConnectionService;') { throw 'Telecom fixture service was packaged in an application APK.' }
     $fixtureClasses += 'Lcom/appcontrol/transport/ReleaseManifestProbe;'
+<<<<<<< HEAD
     $fixtureClasses += 'Lcom/appcontrol/transport/ReleasePersistenceProbe;'
+=======
+>>>>>>> origin/main
     foreach ($descriptor in $fixtureClasses) {
         if (Test-ContainsProbe $apk $descriptor) { throw 'Acceptance fixture was packaged in the application APK.' }
         if (-not (Test-ContainsProbe $testApk $descriptor)) { throw 'Acceptance fixture is absent from its test APK.' }

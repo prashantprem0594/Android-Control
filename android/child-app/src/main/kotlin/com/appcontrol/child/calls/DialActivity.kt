@@ -2,7 +2,11 @@ package com.appcontrol.child.calls
 
 import android.Manifest
 import android.app.Activity
+<<<<<<< HEAD
 import android.os.Build
+=======
+import android.app.role.RoleManager
+>>>>>>> origin/main
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -16,8 +20,11 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+<<<<<<< HEAD
 import android.view.Gravity
 import com.appcontrol.transport.AppAppearance
+=======
+>>>>>>> origin/main
 
 /** ACTION_DIAL never places a call automatically; the user must press Call. */
 class DialActivity : Activity() {
@@ -25,6 +32,7 @@ class DialActivity : Activity() {
     private lateinit var contacts: LinearLayout
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+<<<<<<< HEAD
         AppAppearance.prepare(this)
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
         number = EditText(this).apply {
@@ -73,6 +81,30 @@ class DialActivity : Activity() {
             })
         }
         setContentView(screen)
+=======
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        number = EditText(this).apply { hint = "Phone number"; inputType = InputType.TYPE_CLASS_PHONE; isSaveEnabled = false }
+        readIntent(intent)
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; setPadding(32, 48, 32, 48)
+            addView(TextView(this@DialActivity).apply { text = "App Control phone"; textSize = 24f })
+            addView(number)
+            contacts = LinearLayout(this@DialActivity).apply { orientation = LinearLayout.VERTICAL }
+            addView(contacts)
+            for (row in listOf("123", "456", "789", "*0#")) addView(LinearLayout(this@DialActivity).apply {
+                for (digit in row) addView(Button(this@DialActivity).apply {
+                    text = digit.toString(); setOnClickListener { number.text.insert(number.selectionStart.coerceAtLeast(0), digit.toString()) }
+                }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+            })
+            addView(Button(this@DialActivity).apply { text = "Delete"; setOnClickListener {
+                val cursor = number.selectionStart.coerceAtLeast(0); if (cursor > 0) number.text.delete(cursor - 1, cursor)
+            } })
+            addView(Button(this@DialActivity).apply { text = "Call"; setOnClickListener { placeCall() } })
+            addView(Button(this@DialActivity).apply { text = "Current call"; setOnClickListener { startActivity(Intent(this@DialActivity, CallActivity::class.java)) } })
+            addView(Button(this@DialActivity).apply { text = "Use system phone"; setOnClickListener { systemPhone() } })
+        }
+        setContentView(ScrollView(this).apply { addView(content) })
+>>>>>>> origin/main
     }
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); readIntent(intent) }
     override fun onResume() { super.onResume(); renderContacts() }
@@ -80,15 +112,24 @@ class DialActivity : Activity() {
         contacts.removeAllViews()
         val saved = runCatching { CallContactStore(this).load() }.getOrNull()
         if (saved == null) {
+<<<<<<< HEAD
             contacts.addView(AppAppearance.text(this, "Saved contact shortcuts are unavailable. You can still dial a number.", 14f, false))
             return
         }
         if (saved.contacts.isEmpty()) contacts.addView(AppAppearance.text(this, "Contacts shared by your parent will appear here.", 14f, false))
+=======
+            contacts.addView(TextView(this).apply { text = "Saved contact shortcuts are unavailable. You can still dial a number." })
+            return
+        }
+>>>>>>> origin/main
         for (contact in saved.contacts.sortedByDescending { it.isParent }) {
             contacts.addView(Button(this).apply {
                 text = if (contact.isParent) "Call Parent - ${contact.label}" else contact.label
                 isAllCaps = false
+<<<<<<< HEAD
                 AppAppearance.styleButton(this, false)
+=======
+>>>>>>> origin/main
                 setOnClickListener {
                     val current = runCatching { CallContactStore(this@DialActivity).load() }.getOrNull()
                     if (current == null || contact !in current.contacts) {
@@ -118,19 +159,28 @@ class DialActivity : Activity() {
         // Telecom retains account selection and the system emergency-calling path.
         val result = runCatching { getSystemService(TelecomManager::class.java).placeCall(Uri.fromParts("tel", value, null), Bundle()) }
         if (result.isSuccess) {
+<<<<<<< HEAD
             val emergency = runCatching {
                 if (Build.VERSION.SDK_INT >= 29) getSystemService(TelephonyManager::class.java).isEmergencyNumber(value)
                 else android.telephony.PhoneNumberUtils.isEmergencyNumber(value)
             }.getOrDefault(true)
             if (!emergency && DialerSupport.isHeld(this)) {
+=======
+            val emergency = runCatching { getSystemService(TelephonyManager::class.java).isEmergencyNumber(value) }.getOrDefault(true)
+            if (!emergency && getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_DIALER)) {
+>>>>>>> origin/main
                 startActivity(Intent(this, CallActivity::class.java))
             }
         } else Toast.makeText(this, "Call could not start. Use the system phone if needed.", Toast.LENGTH_LONG).show()
     }
     private fun systemPhone() {
+<<<<<<< HEAD
         val target = if (Build.VERSION.SDK_INT >= 29) getSystemService(TelecomManager::class.java).systemDialerPackage
             else packageManager.queryIntentActivities(Intent(Intent.ACTION_DIAL, Uri.parse("tel:")), PackageManager.MATCH_SYSTEM_ONLY)
                 .firstOrNull { it.activityInfo.packageName != packageName }?.activityInfo?.packageName
+=======
+        val target = getSystemService(TelecomManager::class.java).systemDialerPackage
+>>>>>>> origin/main
         val intent = Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", number.text.toString().take(80), null))
         if (!target.isNullOrBlank() && target != packageName) intent.setPackage(target)
         runCatching { startActivity(if (intent.`package` == null) Intent.createChooser(intent, "Choose phone app") else intent) }

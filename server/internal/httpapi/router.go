@@ -13,7 +13,10 @@ import (
 	"appcontrol/server/internal/auth"
 	"appcontrol/server/internal/control"
 	"appcontrol/server/internal/pairing"
+<<<<<<< HEAD
 	"appcontrol/server/internal/parentpush"
+=======
+>>>>>>> origin/main
 	"appcontrol/server/internal/release"
 )
 
@@ -22,6 +25,7 @@ type statusResponse struct {
 }
 
 type Options struct {
+<<<<<<< HEAD
 	Release            *release.Document
 	WakeupTokens       *control.WakeupTokens
 	ParentWakeupTokens *parentpush.Store
@@ -32,6 +36,17 @@ type Options struct {
 	Ready              func(context.Context) error
 	Auth               AuthService
 	Pairing            *pairing.Service
+=======
+	Release      *release.Document
+	WakeupTokens *control.WakeupTokens
+	Guard        *RequestGuard
+	Control      *control.Service
+	Audit        func(context.Context, string, int64, int) ([]audit.Event, error)
+	Logger       *slog.Logger
+	Ready        func(context.Context) error
+	Auth         AuthService
+	Pairing      *pairing.Service
+>>>>>>> origin/main
 }
 
 type AuthService interface {
@@ -53,6 +68,7 @@ func NewHandler(options Options) http.Handler {
 		registerWakeupTokenRoutes(mux, options.WakeupTokens)
 	}
 	if options.Auth != nil {
+<<<<<<< HEAD
 		if options.ParentWakeupTokens != nil {
 			registerParentWakeupRegistrationRoutes(mux, options.Auth, options.ParentWakeupTokens)
 		}
@@ -61,6 +77,11 @@ func NewHandler(options Options) http.Handler {
 			registerCommandHistoryRoute(mux, options.Auth, options.Control)
 			registerDeviceStatusRoutes(mux, options.Auth, options.Control)
 			registerVisibleLocationRoutes(mux, options.Auth, options.Control)
+=======
+		if options.Control != nil {
+			registerCommandHistoryRoute(mux, options.Auth, options.Control)
+			registerDeviceStatusRoutes(mux, options.Auth, options.Control)
+>>>>>>> origin/main
 			registerCallContactRoutes(mux, options.Auth, options.Control)
 			registerControlRoutes(mux, options.Auth, options.Control)
 		}

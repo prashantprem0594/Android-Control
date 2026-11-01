@@ -22,6 +22,7 @@ func registerPairingRoutes(mux *http.ServeMux, authService AuthService, service 
 			next(w, r, parent.ID)
 		}
 	}
+<<<<<<< HEAD
 	deviceOnly := func(next func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			token, ok := bearerToken(r)
@@ -127,6 +128,8 @@ func registerPairingRoutes(mux *http.ServeMux, authService AuthService, service 
 			w.WriteHeader(http.StatusNoContent)
 		}))
 	}
+=======
+>>>>>>> origin/main
 	mux.HandleFunc("POST /v1/pairing/codes", parentOnly(func(w http.ResponseWriter, r *http.Request, parentID string) {
 		code, err := service.CreateCode(r.Context(), parentID)
 		if err != nil {

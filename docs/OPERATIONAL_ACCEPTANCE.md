@@ -17,6 +17,7 @@ passwords, tokens, private keys, phone numbers or real call content.
 | App update | Build/sign with the existing application identity and compiled server trust. Stage on an acceptance device; retain enrollment/key, Device Owner, cached policy, command journal and call role. Verify boot and interrupted-update recovery. | Isolated random-key signing checks and debug-signed Android 37 version-1-to-2 upgrade preserve Keystore identity, Device Owner and cached policy. Full release lint/reproducibility, production signer and enrolled-device continuity remain pending. |
 | Rollback | Choose an approved compatible database/app rollback path, preserving identity and policy schema compatibility. Validate before broad rollout; do not use uninstall as rollback or silently enable downgrade/debug access. | Procedure design and device exercise pending. |
 
+<<<<<<< HEAD
 ## Parent push after server recovery
 
 Recover the parent routing-token encryption key separately from the encrypted
@@ -41,6 +42,8 @@ This fixture exercise does not contact Firebase or establish clean deployed-host
 production-key custody, physical-phone reconnection or production restore
 acceptance. Those observations remain required for P7-003 and P7-005.
 
+=======
+>>>>>>> origin/main
 ## Pilot record
 
 The 72-hour reliability measurement and supervised one-to-two-week family pilot

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<<<<<<< HEAD
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
@@ -17,24 +18,42 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+=======
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+>>>>>>> origin/main
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+<<<<<<< HEAD
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
+=======
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+>>>>>>> origin/main
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <application
         android:allowBackup="false"
+<<<<<<< HEAD
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:networkSecurityConfig="@xml/server_trust"
         android:label="App Control Child"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
+=======
+        android:networkSecurityConfig="@xml/server_trust"
+        android:label="App Control Child"
+>>>>>>> origin/main
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false">
@@ -46,7 +65,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+<<<<<<< HEAD
         <activity android:name=".commands.LaunchRequestActivity" android:exported="false" android:excludeFromRecents="true" />
+=======
+>>>>>>> origin/main
 
         <receiver
             android:name=".sync.BootReceiver"
@@ -90,6 +112,7 @@
             <intent-filter><action android:name="android.net.VpnService" /></intent-filter>
             <meta-data android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON" android:value="false" />
         </service>
+<<<<<<< HEAD
         <service android:name=".remote.RemoteAssistanceService" android:exported="false"
             android:label="App Control remote assistance"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
@@ -102,6 +125,8 @@
             android:foregroundServiceType="location" />
         <service android:name=".recording.ConsentedRecorderService" android:exported="false"
             android:foregroundServiceType="microphone" />
+=======
+>>>>>>> origin/main
 
         <receiver
             android:name=".admin.AppControlDeviceAdminReceiver"

@@ -2,7 +2,10 @@ package com.appcontrol.child.commands
 
 import android.app.admin.DevicePolicyManager
 import android.content.Context
+<<<<<<< HEAD
 import android.util.Base64
+=======
+>>>>>>> origin/main
 import com.appcontrol.child.network.DeviceEnrollmentClient
 import com.appcontrol.child.BuildConfig
 import com.appcontrol.transport.ServerOrigin
@@ -12,7 +15,10 @@ import com.appcontrol.child.policy.PolicyConfig
 import com.appcontrol.child.policy.PolicyRetry
 import com.appcontrol.child.calls.CallActionGate
 import com.appcontrol.child.calls.CallRegistry
+<<<<<<< HEAD
 import com.appcontrol.child.remote.RemoteAssistanceService
+=======
+>>>>>>> origin/main
 import org.json.JSONObject
 import java.net.URL
 import java.time.Instant
@@ -32,12 +38,18 @@ class CommandSync(context: Context) {
         check(!shouldStop()) { "Sync stopped" }
         val deviceId = checkNotNull(enrollment.getString("deviceId", null)) { "Enrollment required" }
         val base = ServerOrigin.require(checkNotNull(enrollment.getString("server", null)), BuildConfig.SERVER_ORIGIN)
+<<<<<<< HEAD
         val enrollmentClient = DeviceEnrollmentClient(app)
         // Keep the same-device recovery locator current whenever this installation proves its identity.
         runCatching { enrollmentClient.bindRecoveryHandle(shouldStop) }
         fun syncRequest(path: String, body: JSONObject? = null,
                         method: String = if (body == null) "GET" else "POST"): JSONObject =
             enrollmentClient.withAuthenticatedSession(shouldStop) { token ->
+=======
+        fun syncRequest(path: String, body: JSONObject? = null,
+                        method: String = if (body == null) "GET" else "POST"): JSONObject =
+            DeviceEnrollmentClient(app).withAuthenticatedSession(shouldStop) { token ->
+>>>>>>> origin/main
                 request(base, path, token, body, method, shouldStop)
             }
         // A failed capability report must not prevent durable command/policy convergence.
@@ -77,6 +89,7 @@ class CommandSync(context: Context) {
                     "END_CALL" -> CallActionGate.Action.END
                     else -> null
                 }
+<<<<<<< HEAD
                 val openPackage = if (type == "OPEN_APP") {
                     require(payload.length() == 1 && payload.has("packageName"))
                     payload.getString("packageName").also { require(it.matches(Regex("[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+"))) }
@@ -84,6 +97,8 @@ class CommandSync(context: Context) {
                 val openSettings = type == "OPEN_SETTINGS"
                 val remoteScreenshot = type == "REMOTE_SCREENSHOT"
                 val remoteGesture = if (type == "REMOTE_GESTURE") parseRemoteGesture(payload) else null
+=======
+>>>>>>> origin/main
                 val callId = if (callAction != null) {
                     require(payload.length() == 1 && payload.has("callId"))
                     payload.getString("callId").also { callId ->
@@ -91,8 +106,12 @@ class CommandSync(context: Context) {
                         require(parsedCallId.toString() == callId && parsedCallId.version() == 4 && parsedCallId.variant() == 2)
                     }
                 } else {
+<<<<<<< HEAD
                     require(type == "LOCK_DEVICE" && payload.length() == 0 || openPackage != null || openSettings && payload.length() == 0 ||
                         remoteScreenshot && payload.length() == 0 || remoteGesture != null)
+=======
+                    require(type == "LOCK_DEVICE" && payload.length() == 0)
+>>>>>>> origin/main
                     null
                 }
                 val deadline = Instant.parse(command.getString("expiresAt"))
@@ -104,6 +123,7 @@ class CommandSync(context: Context) {
                     check(!shouldStop()) { "Sync stopped" }
                     val manager = app.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
                     if (callAction == null) {
+<<<<<<< HEAD
                         when {
                             openPackage != null -> com.appcontrol.child.commands.LaunchRequestNotification.post(app, id, openPackage, deadline)
                             openSettings -> com.appcontrol.child.commands.LaunchRequestNotification.post(app, id, null, deadline)
@@ -119,6 +139,10 @@ class CommandSync(context: Context) {
                             }
                             else -> { check(manager.isDeviceOwnerApp(app.packageName)) { "Device Owner required" }; manager.lockNow() }
                         }
+=======
+                        check(manager.isDeviceOwnerApp(app.packageName)) { "Device Owner required" }
+                        manager.lockNow()
+>>>>>>> origin/main
                     } else {
                         check(BuildConfig.REMOTE_CALLS_ENABLED) { "Remote call commands are disabled in this build" }
                         check(CallRegistry.executeRemoteAction(checkNotNull(callId), callAction, deadline, shouldStop)) {
@@ -179,6 +203,7 @@ class CommandSync(context: Context) {
         checkNotNull(summary)
     }
 
+<<<<<<< HEAD
     private data class RemoteGesture(val action: String, val x: Int = 0, val y: Int = 0, val endX: Int = 0, val endY: Int = 0, val durationMillis: Int = 0)
     private fun parseRemoteGesture(payload: JSONObject): RemoteGesture {
         val action = payload.getString("action")
@@ -192,6 +217,8 @@ class CommandSync(context: Context) {
         }
     }
 
+=======
+>>>>>>> origin/main
     private fun request(base: URL, path: String, token: String, body: JSONObject? = null,
                         method: String = if (body == null) "GET" else "POST",
                         shouldStop: () -> Boolean = { false }): JSONObject {
@@ -216,7 +243,11 @@ class CommandSync(context: Context) {
             check(connection.responseCode in 200..299) { "Command sync failed (${connection.responseCode})" }
             control.checkActive()
             if (connection.responseCode == 204) return JSONObject()
+<<<<<<< HEAD
             val bytes = connection.inputStream.use { com.appcontrol.transport.BoundedInput.read(it, 128 * 1024 + 1) }
+=======
+            val bytes = connection.inputStream.use { it.readNBytes(128 * 1024 + 1) }
+>>>>>>> origin/main
             control.checkActive()
             check(bytes.size <= 128 * 1024) { "Server response too large" }
             return JSONObject(String(bytes, Charsets.UTF_8))

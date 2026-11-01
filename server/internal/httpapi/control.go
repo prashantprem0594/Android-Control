@@ -99,6 +99,7 @@ func registerControlRoutes(mux *http.ServeMux, auth AuthService, service *contro
 		}
 		w.WriteHeader(http.StatusNoContent)
 	})
+<<<<<<< HEAD
 	mux.HandleFunc("PUT /v1/device/remote-assistance/screens/{commandID}", func(w http.ResponseWriter, r *http.Request) {
 		token, ok := bearerToken(r)
 		if !ok {
@@ -118,6 +119,8 @@ func registerControlRoutes(mux *http.ServeMux, auth AuthService, service *contro
 		}
 		w.WriteHeader(http.StatusNoContent)
 	})
+=======
+>>>>>>> origin/main
 	parentOnly := func(next func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			token, ok := bearerToken(r)
@@ -157,6 +160,7 @@ func registerControlRoutes(mux *http.ServeMux, auth AuthService, service *contro
 		}
 		writeJSON(w, 200, command)
 	}))
+<<<<<<< HEAD
 	mux.HandleFunc("GET /v1/devices/{deviceID}/remote-assistance/screens/{commandID}", parentOnly(func(w http.ResponseWriter, r *http.Request, parentID string) {
 		screen, err := service.RemoteScreen(r.Context(), parentID, r.PathValue("deviceID"), r.PathValue("commandID"))
 		if err != nil {
@@ -177,6 +181,13 @@ func registerControlRoutes(mux *http.ServeMux, auth AuthService, service *contro
 			EndY           *int   `json:"endY,omitempty"`
 			DurationMillis *int   `json:"durationMillis,omitempty"`
 			Action         string `json:"action,omitempty"`
+=======
+	mux.HandleFunc("POST /v1/devices/{deviceID}/commands", parentOnly(func(w http.ResponseWriter, r *http.Request, parentID string) {
+		var input struct {
+			Type       string `json:"type"`
+			TTLSeconds int    `json:"ttlSeconds"`
+			CallID     string `json:"callId,omitempty"`
+>>>>>>> origin/main
 		}
 		if decodeJSONLimit(w, r, &input, 4096) != nil {
 			writeError(w, 400, "invalid_request")
@@ -188,6 +199,7 @@ func registerControlRoutes(mux *http.ServeMux, auth AuthService, service *contro
 			command, err = service.QueueLockWithKey(r.Context(), parentID, r.PathValue("deviceID"), input.TTLSeconds, r.Header.Get("Idempotency-Key"))
 		} else if input.Type == "ANSWER_CALL" || input.Type == "REJECT_CALL" || input.Type == "END_CALL" {
 			command, err = service.QueueCallActionWithKey(r.Context(), parentID, r.PathValue("deviceID"), input.Type, input.CallID, input.TTLSeconds, r.Header.Get("Idempotency-Key"))
+<<<<<<< HEAD
 		} else if input.Type == "OPEN_APP" && input.CallID == "" {
 			command, err = service.QueueOpenApp(r.Context(), parentID, r.PathValue("deviceID"), input.PackageName, input.TTLSeconds, r.Header.Get("Idempotency-Key"))
 		} else if input.Type == "OPEN_SETTINGS" && input.CallID == "" && input.PackageName == "" {
@@ -202,6 +214,8 @@ func registerControlRoutes(mux *http.ServeMux, auth AuthService, service *contro
 			command, err = service.QueueRemoteLongPress(r.Context(), parentID, r.PathValue("deviceID"), *input.X, *input.Y, *input.DurationMillis, input.TTLSeconds, r.Header.Get("Idempotency-Key"))
 		} else if input.Type == "REMOTE_GLOBAL" && input.CallID == "" && input.PackageName == "" && input.X == nil && input.Y == nil && input.EndX == nil && input.EndY == nil && input.DurationMillis == nil {
 			command, err = service.QueueRemoteGlobal(r.Context(), parentID, r.PathValue("deviceID"), input.Action, input.TTLSeconds, r.Header.Get("Idempotency-Key"))
+=======
+>>>>>>> origin/main
 		} else {
 			writeError(w, 400, "invalid_request")
 			return

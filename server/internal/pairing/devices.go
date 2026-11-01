@@ -22,7 +22,11 @@ func (service *Service) Devices(ctx context.Context, parentID, after string, lim
 		return page, ErrInvalidPage
 	}
 	rows, err := service.database.QueryContext(ctx, `SELECT id, parent_account_id, display_name, key_algorithm, state, created_at, enrolled_at
+<<<<<<< HEAD
 		FROM devices WHERE parent_account_id = ? AND state != 'revoked' AND id > ? ORDER BY id LIMIT ?`, parentID, after, limit+1)
+=======
+		FROM devices WHERE parent_account_id = ? AND id > ? ORDER BY id LIMIT ?`, parentID, after, limit+1)
+>>>>>>> origin/main
 	if err != nil {
 		return page, fmt.Errorf("list devices: %w", err)
 	}

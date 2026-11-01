@@ -1,5 +1,6 @@
 # Telecom feasibility prototype
 
+<<<<<<< HEAD
 ## Already-current output feedback - 25 October 2026
 
 The synthetic `endpoint-feedback-v1` check reproduced misleading unconfirmed
@@ -36,6 +37,8 @@ Logs retain failed harness assumptions and successful reruns in
 `logs/build/2026-10-25.txt`. Current child release lint/assembly and the ordinary
 `ui-controls-v1` synthetic regression pass after this change.
 
+=======
+>>>>>>> origin/main
 The child now contains a default-phone-role prototype. It is not a completed
 replacement dialer or a verified remote-call product. The backend can queue
 short-lived answer, reject and end commands for an exact child call ID, but

@@ -49,7 +49,11 @@ public final class ReleaseArtifact {
             }
             require(hex(digest.digest()).equals(expected.getString("sha256")));
             stage = "archive";
+<<<<<<< HEAD
             PackageInfo actual = manager.getPackageArchiveInfo(apk.getAbsolutePath(), PackageManager.GET_SIGNING_CERTIFICATES);
+=======
+            PackageInfo actual = manager.getPackageArchiveInfo(apk.getAbsolutePath(), PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES));
+>>>>>>> origin/main
             require(actual != null && actual.applicationInfo != null && actual.signingInfo != null);
             stage = "package";
             require(packageName.equals(actual.packageName) && actual.getLongVersionCode() == expected.getLong("versionCode") &&

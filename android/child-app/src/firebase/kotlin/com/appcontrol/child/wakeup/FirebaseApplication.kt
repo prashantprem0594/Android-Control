@@ -15,11 +15,15 @@ class FirebaseApplication : Application() {
             .setApiKey(BuildConfig.FIREBASE_API_KEY)
             .setProjectId(BuildConfig.FIREBASE_PROJECT_ID)
             .setGcmSenderId(BuildConfig.FIREBASE_SENDER_ID).build()
+<<<<<<< HEAD
         // FirebaseInitProvider may have already created the default app from
         // the generated resources before Application.onCreate runs.
         if (FirebaseApp.getApps(this).none { it.name == FirebaseApp.DEFAULT_APP_NAME }) {
             FirebaseApp.initializeApp(this, options)
         }
+=======
+        FirebaseApp.initializeApp(this, options)
+>>>>>>> origin/main
         FirebaseMessaging.getInstance().isAutoInitEnabled = true
     }
 }

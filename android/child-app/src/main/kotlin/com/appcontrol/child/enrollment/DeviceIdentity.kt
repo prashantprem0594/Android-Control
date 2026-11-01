@@ -53,6 +53,7 @@ class DeviceIdentity {
         })
     }
 
+<<<<<<< HEAD
     fun signRecovery(requestId: String, challenge: String): String {
         require(requestId.length in 1..128 && requestId.all { it.isLetterOrDigit() || it == '_' || it == '-' })
         val bytes = Base64.decode(challenge, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
@@ -66,6 +67,8 @@ class DeviceIdentity {
         })
     }
 
+=======
+>>>>>>> origin/main
     private fun encode(bytes: ByteArray) = Base64.encodeToString(bytes,
         Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
 }

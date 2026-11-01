@@ -56,6 +56,7 @@ Changes are not instantaneous and must not serve as outgoing-call restrictions.
 
 ## Verification limits
 
+<<<<<<< HEAD
 The 26 October side-by-side child DialActivity also passes local encrypted-cache
 selection checks: Call Parent fills the number for review, changed/removed
 shortcuts cannot overwrite a manually entered number, and the updated shortcut
@@ -120,3 +121,10 @@ The required marker is `server_https_contact_recovery_probe=passed`. Evidence:
 `.cache/android-server-https-reports/67652bcd119f49ff84a944423362f27c.json`;
 all 12 integration stages and fixture cleanup passed. This tests a contact-route
 503 response, not full-server downtime, airplane mode or network switching.
+=======
+Focused Go service/HTTP checks cover authentication, strict payloads, dangerous
+dial strings, duplicate/primary validation, stale edits, clearing, revocation
+and audit rollback. Android debug builds check compilation. Parent editing,
+child delivery, encrypted-cache lifecycle, offline use and SIM dialing still
+require device acceptance. No call was placed during implementation.
+>>>>>>> origin/main

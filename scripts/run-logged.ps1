@@ -7,8 +7,12 @@ param(
     [string]$Category,
     [Parameter(Mandatory)]
     [string]$Command,
+<<<<<<< HEAD
     [string]$WorkingDirectory,
     [string]$ExitCodeFile
+=======
+    [string]$WorkingDirectory
+>>>>>>> origin/main
 )
 
 $ErrorActionPreference = 'Stop'
@@ -74,6 +78,7 @@ $logPath = & $logWriter `
     -FinishedAtUtc $finishedAtUtc
 
 Write-Output "Build log: $logPath"
+<<<<<<< HEAD
 if (-not [string]::IsNullOrWhiteSpace($ExitCodeFile)) {
     if (-not [IO.Path]::IsPathRooted($ExitCodeFile)) {
         throw 'Exit-code marker path must be absolute.'
@@ -81,3 +86,7 @@ if (-not [string]::IsNullOrWhiteSpace($ExitCodeFile)) {
     [IO.File]::WriteAllText($ExitCodeFile, $exitCode.ToString([Globalization.CultureInfo]::InvariantCulture), [Text.UTF8Encoding]::new($false))
 }
 exit $exitCode
+=======
+exit $exitCode
+
+>>>>>>> origin/main

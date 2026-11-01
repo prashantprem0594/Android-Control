@@ -19,6 +19,7 @@ public final class ServerTrustInstrumentation extends Instrumentation {
     }
 
     @Override public void onStart() {
+<<<<<<< HEAD
         if ("ui_appearance".equals(arguments.getString("probe"))) {
             Bundle result = UiAppearanceProbe.run(getTargetContext(), this);
             finish("passed".equals(result.getString("ui_appearance_probe")) ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
@@ -156,6 +157,8 @@ public final class ServerTrustInstrumentation extends Instrumentation {
             finish("passed".equals(contactResult.getString("contact_cache_probe")) ? Activity.RESULT_OK : Activity.RESULT_CANCELED, contactResult);
             return;
         }
+=======
+>>>>>>> origin/main
         if ("release_artifact".equals(arguments.getString("probe"))) {
             Bundle artifactResult = ReleaseArtifactProbe.run(getTargetContext(), getContext());
             finish("passed".equals(artifactResult.getString("release_artifact_probe")) ? Activity.RESULT_OK : Activity.RESULT_CANCELED, artifactResult);
@@ -205,7 +208,11 @@ public final class ServerTrustInstrumentation extends Instrumentation {
         if ("parent_client".equals(arguments.getString("probe"))) {
             Bundle parentResult = new Bundle();
             try {
+<<<<<<< HEAD
                 if (!isTargetPackage("com.appcontrol.parent")) throw new IllegalArgumentException();
+=======
+                if (!"com.appcontrol.parent".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+>>>>>>> origin/main
                 parentResult = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.parent.ParentClientProbe")
                     .getMethod("run", android.content.Context.class).invoke(null, getTargetContext());
             } catch (Exception failure) {
@@ -217,7 +224,11 @@ public final class ServerTrustInstrumentation extends Instrumentation {
         if ("parent_session".equals(arguments.getString("probe"))) {
             Bundle parentResult = new Bundle();
             try {
+<<<<<<< HEAD
                 if (!isTargetPackage("com.appcontrol.parent")) throw new IllegalArgumentException();
+=======
+                if (!"com.appcontrol.parent".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+>>>>>>> origin/main
                 parentResult = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.parent.ParentSessionProbe")
                     .getMethod("run", android.content.Context.class).invoke(null, getTargetContext());
             } catch (Exception failure) {
@@ -362,9 +373,12 @@ public final class ServerTrustInstrumentation extends Instrumentation {
         result.putString("stream", "Server trust probe: " + (passed ? "passed" : "failed") + " (" + outcome + ")\n");
         finish(passed ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
     }
+<<<<<<< HEAD
 
     private boolean isTargetPackage(String basePackage) {
         String actualPackage = getTargetContext().getPackageName();
         return basePackage.equals(actualPackage) || (basePackage + ".acceptance").equals(actualPackage);
     }
+=======
+>>>>>>> origin/main
 }

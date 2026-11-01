@@ -57,7 +57,10 @@ func newFixture(t *testing.T) testFixture {
 	service, err := NewService(database, Options{
 		Now: clock.Now, PairingCodeLifetime: 10 * time.Minute,
 		EnrollmentLifetime: 5 * time.Minute, MaxVerificationTries: 3,
+<<<<<<< HEAD
 		RecoveryHMACKey: []byte("0123456789abcdef0123456789abcdef"),
+=======
+>>>>>>> origin/main
 	})
 	if err != nil {
 		t.Fatalf("create pairing service: %v", err)

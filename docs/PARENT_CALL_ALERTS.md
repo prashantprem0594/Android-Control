@@ -1,7 +1,10 @@
 # Parent incoming-call watch
 
+<<<<<<< HEAD
 The optional parent Firebase variant now has a separate [authenticated event synchronization path](PARENT_FIREBASE_SYNC.md). Local implementation/build checks do not establish live Firebase or OEM delivery. The bounded foreground watch below remains separate.
 
+=======
+>>>>>>> origin/main
 Open a device's **Foreground calls** screen, choose **Watch incoming calls for
 ten minutes**, review the polling notice and grant Android notification access.
 This starts a visible data-sync foreground service for one child. Starting a
@@ -42,6 +45,7 @@ retains at most 128 first-seen call identities during its observation window.
 
 ## Limits and acceptance
 
+<<<<<<< HEAD
 The optional `-ObserveCallWatchWindow` run on 26 October observed the production
 service's automatic stop after **600807 ms**, checked that the parent session
 and synthetic device were still valid, restarted the watch, and verified logout
@@ -65,6 +69,8 @@ granted only on the emulator's disposable `.acceptance` app. Actual elapsed
 ten-minute expiry, lock-screen presentation, process death, OEM background
 behavior, real calls and live parent push remain unverified.
 
+=======
+>>>>>>> origin/main
 Elapsed realtime bounds observation to ten minutes. Expired watches do not start
 another fetch or publish a late result. Stop, replacement and destruction cancel
 the worker, clear timers and remove alerts. Android can suspend the process;

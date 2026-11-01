@@ -60,7 +60,11 @@ class RemoteCallSnapshotSync(context: Context) {
             connection.outputStream.use { it.write(bytes) }
             control.checkActive()
             check(connection.responseCode in 200..299) { "Call snapshot request failed (${connection.responseCode})" }
+<<<<<<< HEAD
             val response = connection.inputStream.use { com.appcontrol.transport.BoundedInput.read(it, 16 * 1024 + 1) }
+=======
+            val response = connection.inputStream.use { it.readNBytes(16 * 1024 + 1) }
+>>>>>>> origin/main
             control.checkActive()
             check(response.size <= 16 * 1024) { "Call snapshot response too large" }
             return JSONObject(String(response, Charsets.UTF_8))

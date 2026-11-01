@@ -4,13 +4,17 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
+<<<<<<< HEAD
 	"encoding/base64"
+=======
+>>>>>>> origin/main
 	"errors"
 	"strings"
 	"testing"
 	"time"
 )
 
+<<<<<<< HEAD
 func TestRemoteAssistanceScreenRequiresDeliveredOwnedCommand(t *testing.T) {
 	db, _ := fixture(t)
 	s := NewService(db)
@@ -48,6 +52,8 @@ func TestRemoteAssistanceScreenRequiresDeliveredOwnedCommand(t *testing.T) {
 	}
 }
 
+=======
+>>>>>>> origin/main
 func session(t *testing.T, db *sql.DB, deviceID, character string, now time.Time) string {
 	t.Helper()
 	token := "dt_" + strings.Repeat(character, 43)

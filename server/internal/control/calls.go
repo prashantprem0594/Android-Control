@@ -80,6 +80,7 @@ func (s *Service) ReportRemoteCalls(ctx context.Context, token string, sequence 
 		if sequence > allocated {
 			return ErrInvalid
 		}
+<<<<<<< HEAD
 		previous := make(map[string]string)
 		var previousJSON string
 		err = tx.QueryRowContext(ctx, `SELECT calls_json FROM remote_call_snapshots WHERE device_id=?`, id).Scan(&previousJSON)
@@ -94,6 +95,8 @@ func (s *Service) ReportRemoteCalls(ctx context.Context, token string, sequence 
 		} else if !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
+=======
+>>>>>>> origin/main
 		result, err := tx.ExecContext(ctx, `INSERT INTO remote_call_snapshots(device_id,parent_account_id,observed_at,calls_json,snapshot_sequence)
 		 SELECT id,parent_account_id,?,?,? FROM devices WHERE id=?
 		 ON CONFLICT(device_id) DO UPDATE SET parent_account_id=excluded.parent_account_id,
@@ -108,6 +111,7 @@ func (s *Service) ReportRemoteCalls(ctx context.Context, token string, sequence 
 			return err
 		}
 		accepted = rows == 1
+<<<<<<< HEAD
 		if accepted {
 			var parentID string
 			if err := tx.QueryRowContext(ctx, `SELECT parent_account_id FROM devices WHERE id=? AND state='active'`, id).Scan(&parentID); err != nil {
@@ -163,6 +167,8 @@ func (s *Service) ReportRemoteCalls(ctx context.Context, token string, sequence 
 				}
 			}
 		}
+=======
+>>>>>>> origin/main
 		return nil
 	})
 	return accepted, err

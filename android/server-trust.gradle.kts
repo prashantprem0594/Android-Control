@@ -1,8 +1,11 @@
 import java.net.URI
+<<<<<<< HEAD
 import java.io.ByteArrayInputStream
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.nio.charset.StandardCharsets
+=======
+>>>>>>> origin/main
 import java.util.Base64
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
@@ -11,9 +14,13 @@ import org.gradle.api.tasks.TaskAction
 
 abstract class ValidateReleaseTrust : DefaultTask() {
     @get:Input abstract val hasConfiguration: Property<Boolean>
+<<<<<<< HEAD
     @get:Input abstract val hasDevelopmentCa: Property<Boolean>
     @TaskAction fun validate() {
         check(!hasDevelopmentCa.get()) { "Development CA trust is debug-only and must never be packaged in a release" }
+=======
+    @TaskAction fun validate() {
+>>>>>>> origin/main
         check(hasConfiguration.get()) { "Release builds require server origin and distinct current/backup SHA-256 pins" }
     }
 }
@@ -23,7 +30,10 @@ val trustOrigin = providers.gradleProperty("appControlServerOrigin").orNull?.tri
 val trustCurrent = providers.gradleProperty("appControlCurrentPin").orNull?.trim().orEmpty()
 val trustBackup = providers.gradleProperty("appControlBackupPin").orNull?.trim().orEmpty()
 val configured = listOf(trustOrigin, trustCurrent, trustBackup).any { it.isNotEmpty() }
+<<<<<<< HEAD
 val developmentCaPath = providers.gradleProperty("appControlDevelopmentCaFile").orNull?.trim().orEmpty()
+=======
+>>>>>>> origin/main
 var canonicalOrigin = ""
 var trustHost = ""
 if (configured) {
@@ -48,6 +58,7 @@ if (configured) {
     canonicalOrigin = URI("https", null, host, if (origin.port == 443) -1 else origin.port, null, null, null).toASCIIString()
 }
 
+<<<<<<< HEAD
 // The temporary laptop root is a public debug-only trust anchor, scoped to the
 // configured host. It never bypasses pinning or changes hostname verification.
 val developmentCaPem = if (developmentCaPath.isNotEmpty()) {
@@ -84,6 +95,8 @@ require(developmentCaPem.isEmpty() || gradle.startParameter.taskNames.none { it.
     "Development CA trust is debug-only and must never be supplied to release tasks"
 }
 
+=======
+>>>>>>> origin/main
 val domain = if (configured) """
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="false">$trustHost</domain>
@@ -99,6 +112,7 @@ extra["serverTrustXml"] = """<?xml version="1.0" encoding="utf-8"?>
     </base-config>$domain
 </network-security-config>
 """
+<<<<<<< HEAD
 extra["serverTrustDevelopmentCaPem"] = developmentCaPem
 extra["serverTrustDebugXml"] = if (developmentCaPem.isEmpty()) extra["serverTrustXml"] as String else {
     val developmentDomain = domain.replace("        <pin-set>", """        <trust-anchors>
@@ -117,6 +131,10 @@ extra["serverTrustDebugXml"] = if (developmentCaPem.isEmpty()) extra["serverTrus
 val validateReleaseServerTrust = tasks.register<ValidateReleaseTrust>("validateReleaseServerTrust") {
     hasConfiguration.set(configured)
     hasDevelopmentCa.set(developmentCaPem.isNotEmpty())
+=======
+val validateReleaseServerTrust = tasks.register<ValidateReleaseTrust>("validateReleaseServerTrust") {
+    hasConfiguration.set(configured)
+>>>>>>> origin/main
 }
 extra["serverTrustOrigin"] = canonicalOrigin
 tasks.configureEach {

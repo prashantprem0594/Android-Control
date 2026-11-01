@@ -19,4 +19,7 @@ include(":parent-app")
 include(":child-app")
 include(":policy-fixture")
 include(":telecom-fixture")
+<<<<<<< HEAD
 include(":network-fixture")
+=======
+>>>>>>> origin/main

@@ -1,5 +1,6 @@
 # Private release preparation
 
+<<<<<<< HEAD
 A later independent DEX inspection confirms the packaged ParentClient server accessor in all three stored parent configurations contains the requested fixture origin. The new scripts/assert-apk-parent-origin.ps1 gate also rejects a known stale debug acceptance APK with an empty compiled origin. Configured release verification now invokes this gate; generated BuildConfig source alone is insufficient to establish the packaged accessor value. This inspection does not verify every other compiled constant.
 
 Current 26 October checkpoints: six unsigned fixture parent/child artifacts
@@ -20,6 +21,8 @@ integrated release recheck. The enabled-configuration checks are also scoped to
 their recorded source snapshot. Parallel parent push implementation remains a
 separate integration task.
 
+=======
+>>>>>>> origin/main
 Use the [public configuration exporter](PRODUCTION_CONFIGURATION.md) to validate
 deployment build inputs together and export argument arrays for both apps.
 Its structural checks do not establish production readiness.
@@ -58,6 +61,7 @@ unconfigured. It establishes reproducibility for those inputs on this host;
 production configuration, enabled FCM/update variants and device continuity
 require their own acceptance.
 
+<<<<<<< HEAD
 Later on 25 October, full `lintRelease` found six child errors beyond vital
 lint: phone-account permission handling, API 34 endpoint guards and manifest
 declarations. These were fixed; both full release lint tasks and both release
@@ -82,6 +86,8 @@ remote-call opt-in fixtures. That matrix validates compiled settings and APK
 separation; it is separate from reproducibility, production signing and live
 delivery checks.
 
+=======
+>>>>>>> origin/main
 ## APK signing
 
 Use an existing operator-controlled release keystore, backed up separately from

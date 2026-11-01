@@ -5,7 +5,10 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import java.io.File;
 import java.io.InputStream;
+<<<<<<< HEAD
 import java.io.ByteArrayOutputStream;
+=======
+>>>>>>> origin/main
 import java.net.URL;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -18,6 +21,7 @@ import javax.net.ssl.HttpsURLConnection;
 /** Fetch/checkpoint/stage a self-update using compiled authority. No installer. */
 public final class ReleaseUpdate {
     private ReleaseUpdate() { }
+<<<<<<< HEAD
     /** Some older Android providers cannot verify our required update algorithm. */
     public static boolean verificationSupported() {
         try {
@@ -26,6 +30,8 @@ public final class ReleaseUpdate {
             return true;
         } catch (java.security.GeneralSecurityException unavailable) { return false; }
     }
+=======
+>>>>>>> origin/main
     public static final class Prepared implements AutoCloseable {
         final File apk; final byte[] envelope; final String publicKey,origin,certificate;final long minimum;
         private final String versionName;private final long versionCode;
@@ -52,7 +58,11 @@ public final class ReleaseUpdate {
             if (key.length != 44 || !Base64.getEncoder().encodeToString(key).equals(publicKey)) throw new IllegalArgumentException();
             KeyFactory.getInstance("Ed25519").generatePublic(new X509EncodedKeySpec(key));
             PackageManager manager = app.getPackageManager();
+<<<<<<< HEAD
             PackageInfo installed = manager.getPackageInfo(app.getPackageName(), PackageManager.GET_SIGNING_CERTIFICATES);
+=======
+            PackageInfo installed = manager.getPackageInfo(app.getPackageName(), PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES));
+>>>>>>> origin/main
             if (installed.signingInfo == null || installed.signingInfo.hasMultipleSigners()) throw new IllegalArgumentException();
             android.content.pm.Signature[] signers = installed.signingInfo.getApkContentsSigners();
             if (signers == null || signers.length != 1) throw new IllegalArgumentException();
@@ -68,7 +78,11 @@ public final class ReleaseUpdate {
             staged = ReleaseDownload.stage(app, envelope, publicKey, origin, certificate, state.minimumSequence(), cancelled);
             PackageInfo candidate = ReleaseArtifact.inspect(manager, staged, envelope, publicKey, origin, certificate,
                 state.minimumSequence(), app.getPackageName(), Instant.now());
+<<<<<<< HEAD
             installed = manager.getPackageInfo(app.getPackageName(), PackageManager.GET_SIGNING_CERTIFICATES);
+=======
+            installed = manager.getPackageInfo(app.getPackageName(), PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES));
+>>>>>>> origin/main
             ReleaseArtifact.requireUpgrade(installed, candidate);
             if (cancelled.getAsBoolean()) throw new IllegalArgumentException();
             complete = true;
@@ -89,6 +103,7 @@ public final class ReleaseUpdate {
             String encoding=connection.getHeaderField("Content-Encoding");long declared=connection.getContentLengthLong();
             if(declared>65536||encoding!=null&&!encoding.equalsIgnoreCase("identity"))throw new IllegalArgumentException();
             byte[] bytes;
+<<<<<<< HEAD
             try(InputStream input=connection.getInputStream();ByteArrayOutputStream output=new ByteArrayOutputStream()){
                 byte[] buffer=new byte[8192];int count;
                 while(output.size()<65537 && (count=input.read(buffer,0,Math.min(buffer.length,65537-output.size())))!=-1){
@@ -96,6 +111,9 @@ public final class ReleaseUpdate {
                 }
                 bytes=output.toByteArray();
             }
+=======
+            try(InputStream input=connection.getInputStream()){bytes=input.readNBytes(65537);}
+>>>>>>> origin/main
             deadline.checkActive();
             if(bytes.length==0||bytes.length>65536||declared!=-1&&declared!=bytes.length)throw new IllegalArgumentException();
             return bytes;

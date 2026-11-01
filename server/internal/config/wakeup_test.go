@@ -22,6 +22,7 @@ func TestFCMPrivateFilesAreOptionalButMustBePaired(t *testing.T) {
 		}
 	}
 }
+<<<<<<< HEAD
 
 func TestParentFCMKeyIsIndependentOfChildSenderConfiguration(t *testing.T) {
 	values := map[string]string{"APP_CONTROL_PARENT_FCM_TOKEN_KEY_FILE": "private-parent-routing-key"}
@@ -59,3 +60,5 @@ func TestParentFCMSenderIsOptInAndSeparatelyConfigured(t *testing.T) {
 		t.Fatal("parent sender did not remain separately configured")
 	}
 }
+=======
+>>>>>>> origin/main

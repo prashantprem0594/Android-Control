@@ -35,8 +35,13 @@ func registerDeviceStatusRoutes(mux *http.ServeMux, authentication AuthService, 
 		var input struct {
 			Sequence int64 `json:"sequence"`
 			Calls    []struct {
+<<<<<<< HEAD
 				CallID               string `json:"callId"`
 				State                string `json:"state"`
+=======
+				CallID              string `json:"callId"`
+				State               string `json:"state"`
+>>>>>>> origin/main
 				RemoteActionsAllowed *bool  `json:"remoteActionsAllowed"`
 			} `json:"calls"`
 		}
@@ -95,18 +100,25 @@ func registerDeviceStatusRoutes(mux *http.ServeMux, authentication AuthService, 
 			DialerRole  *bool `json:"dialerRole"`
 			VPNConsent  *bool `json:"vpnConsent"`
 			ExactAlarms *bool `json:"exactAlarms"`
+<<<<<<< HEAD
 			// Connectivity fields are optional so child apps released before this
 			// report was added remain compatible.
 			NetworkConnected  bool `json:"networkConnected"`
 			WiFiConnected     bool `json:"wifiConnected"`
 			CellularConnected bool `json:"cellularConnected"`
 			VPNActive         bool `json:"vpnActive"`
+=======
+>>>>>>> origin/main
 		}
 		if decodeJSON(w, r, &input) != nil || input.AndroidAPI == nil || input.DeviceOwner == nil || input.DialerRole == nil || input.VPNConsent == nil || input.ExactAlarms == nil {
 			writeError(w, 400, "invalid_request")
 			return
 		}
+<<<<<<< HEAD
 		if err := service.ReportStatus(r.Context(), token, control.Capabilities{AndroidAPI: *input.AndroidAPI, DeviceOwner: *input.DeviceOwner, DialerRole: *input.DialerRole, VPNConsent: *input.VPNConsent, ExactAlarms: *input.ExactAlarms, NetworkConnected: input.NetworkConnected, WiFiConnected: input.WiFiConnected, CellularConnected: input.CellularConnected, VPNActive: input.VPNActive}); err != nil {
+=======
+		if err := service.ReportStatus(r.Context(), token, control.Capabilities{AndroidAPI: *input.AndroidAPI, DeviceOwner: *input.DeviceOwner, DialerRole: *input.DialerRole, VPNConsent: *input.VPNConsent, ExactAlarms: *input.ExactAlarms}); err != nil {
+>>>>>>> origin/main
 			controlError(w, err)
 			return
 		}

@@ -93,6 +93,7 @@ canonical opaque `syncHint`, then request the existing network-constrained sync;
 token registration uses the authenticated device session and the existing
 server-origin gate.
 
+<<<<<<< HEAD
 ## Fixture and build evidence
 
 The following are local fixture/build checks only:
@@ -128,3 +129,18 @@ as the transport fallback.
 
 The server implementation adds no external Go dependencies. Android SDK
 download and live project/device evidence remain external prerequisites.
+=======
+Android polling APK compilation, Firebase-variant configuration validation,
+opaque-hint rejection checks, and both Firebase-enabled variant builds pass.
+The debug APK and unsigned release APK include the Firebase application and
+messaging service. The compile used fixture Gradle properties because no test
+Firebase project configuration was available in the workspace or environment;
+it did not authenticate to Firebase or send a message. Live integration still
+requires a real test project with only Cloud Messaging, appropriate operator
+IAM configuration, and device delivery tests. No real credentials were read
+and no live message was sent in verification. Do not mark live-delivery
+acceptance complete without device evidence. The child retains
+foreground/background reconciliation as the transport fallback.
+The server implementation adds no external Go dependencies. Android SDK download
+and live project/device evidence remain external prerequisites.
+>>>>>>> origin/main

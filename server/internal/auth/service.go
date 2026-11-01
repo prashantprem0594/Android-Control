@@ -77,16 +77,27 @@ func NewService(database *sql.DB, options Options) (*Service, error) {
 		options.AccessLifetime = 15 * time.Minute
 	}
 	if options.RefreshLifetime == 0 {
+<<<<<<< HEAD
 		options.RefreshLifetime = 10 * 365 * 24 * time.Hour
+=======
+		options.RefreshLifetime = 30 * 24 * time.Hour
+>>>>>>> origin/main
 	}
 	if options.LoginWindow == 0 {
 		options.LoginWindow = 15 * time.Minute
 	}
 	if options.LoginBlockDuration == 0 {
+<<<<<<< HEAD
 		options.LoginBlockDuration = 5 * time.Second
 	}
 	if options.MaxLoginFailures == 0 {
 		options.MaxLoginFailures = 20
+=======
+		options.LoginBlockDuration = 15 * time.Minute
+	}
+	if options.MaxLoginFailures == 0 {
+		options.MaxLoginFailures = 5
+>>>>>>> origin/main
 	}
 	if err := validatePasswordParameters(options.PasswordParameters); err != nil {
 		return nil, err
@@ -98,9 +109,12 @@ func NewService(database *sql.DB, options Options) (*Service, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create dummy password hash: %w", err)
 	}
+<<<<<<< HEAD
 	if err := shortenExistingLoginBlocks(database, options.LoginBlockDuration); err != nil {
 		return nil, fmt.Errorf("update existing login block policy: %w", err)
 	}
+=======
+>>>>>>> origin/main
 	return &Service{
 		database: database, now: options.Now, random: options.Random,
 		passwordParameters: options.PasswordParameters,
@@ -110,6 +124,7 @@ func NewService(database *sql.DB, options Options) (*Service, error) {
 	}, nil
 }
 
+<<<<<<< HEAD
 // Apply a shorter configured cooldown to blocks persisted by an earlier
 // server version while preserving their failure counts.
 func shortenExistingLoginBlocks(database *sql.DB, duration time.Duration) error {
@@ -166,6 +181,8 @@ func shortenExistingLoginBlocks(database *sql.DB, duration time.Duration) error 
 	return tx.Commit()
 }
 
+=======
+>>>>>>> origin/main
 func (service *Service) Register(ctx context.Context, email, password string) (Parent, error) {
 	canonical, err := canonicalEmail(email)
 	if err != nil {
@@ -290,6 +307,7 @@ func (service *Service) Refresh(ctx context.Context, refreshToken string) (Token
 			return ErrInvalidToken
 		}
 		if pair.RefreshExpiresAt.After(familyExpiry) {
+<<<<<<< HEAD
 			if _, err := transaction.ExecContext(ctx,
 				"UPDATE auth_session_families SET expires_at = ? WHERE id = ? AND revoked_at IS NULL",
 				formatTime(pair.RefreshExpiresAt), familyID,
@@ -299,6 +317,12 @@ func (service *Service) Refresh(ctx context.Context, refreshToken string) (Token
 		}
 		if pair.AccessExpiresAt.After(pair.RefreshExpiresAt) {
 			pair.AccessExpiresAt = pair.RefreshExpiresAt
+=======
+			pair.RefreshExpiresAt = familyExpiry
+		}
+		if pair.AccessExpiresAt.After(familyExpiry) {
+			pair.AccessExpiresAt = familyExpiry
+>>>>>>> origin/main
 		}
 		result, err := transaction.ExecContext(ctx,
 			"UPDATE auth_refresh_tokens SET consumed_at = ?, replaced_by_hash = ? WHERE token_hash = ? AND consumed_at IS NULL",

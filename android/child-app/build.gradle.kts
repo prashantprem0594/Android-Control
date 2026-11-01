@@ -40,7 +40,11 @@ android {
 
     defaultConfig {
         applicationId = "com.appcontrol.child"
+<<<<<<< HEAD
         minSdk = 28
+=======
+        minSdk = 33
+>>>>>>> origin/main
         targetSdk = 37
         versionCode = project.extra["appVersionCode"] as Int
         versionName = project.extra["appVersionName"] as String
@@ -100,12 +104,16 @@ if (firebaseEnabled) {
 
 abstract class GenerateServerTrustResources : DefaultTask() {
     @get:Input abstract val xmlContent: Property<String>
+<<<<<<< HEAD
     @get:Input abstract val developmentCaPem: Property<String>
+=======
+>>>>>>> origin/main
     @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
     @TaskAction fun generate() {
         val target = outputDirectory.file("xml/server_trust.xml").get().asFile
         target.parentFile.mkdirs()
         target.writeText(xmlContent.get())
+<<<<<<< HEAD
         val developmentCa = outputDirectory.file("raw/appcontrol_development_ca.pem").get().asFile
         if (developmentCaPem.get().isNotEmpty()) {
             developmentCa.parentFile.mkdirs()
@@ -132,11 +140,14 @@ abstract class GenerateFirebaseOptionsResources : DefaultTask() {
     <string name="gcm_defaultSenderId" translatable="false">${senderId.get()}</string>
 </resources>
 """)
+=======
+>>>>>>> origin/main
     }
 }
 androidComponents.onVariants { variant ->
     variant.sources.java?.addStaticSourceDirectory(rootProject.file("shared/src/main/java").absolutePath)
     val generateTrust = tasks.register<GenerateServerTrustResources>("generate${variant.name.replaceFirstChar { it.uppercaseChar() }}ServerTrust") {
+<<<<<<< HEAD
         val development = variant.buildType == "debug" || variant.buildType == "fcmDebug"
         xmlContent.set(project.extra[if (development) "serverTrustDebugXml" else "serverTrustXml"] as String)
         developmentCaPem.set(if (development) project.extra["serverTrustDevelopmentCaPem"] as String else "")
@@ -151,4 +162,9 @@ androidComponents.onVariants { variant ->
         }
         variant.sources.res?.addGeneratedSourceDirectory(generateFirebaseOptions, GenerateFirebaseOptionsResources::outputDirectory)
     }
+=======
+        xmlContent.set(project.extra["serverTrustXml"] as String)
+    }
+    variant.sources.res?.addGeneratedSourceDirectory(generateTrust, GenerateServerTrustResources::outputDirectory)
+>>>>>>> origin/main
 }

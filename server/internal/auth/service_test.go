@@ -143,6 +143,7 @@ func TestRefreshRotatesTokenAndReuseRevokesFamily(t *testing.T) {
 	}
 }
 
+<<<<<<< HEAD
 func TestRefreshExtendsExistingSessionFamily(t *testing.T) {
 	service, database, clock := newTestService(t, func(options *Options) { options.RefreshLifetime = 0 })
 	parent := registerTestParent(t, service)
@@ -170,6 +171,8 @@ func TestRefreshExtendsExistingSessionFamily(t *testing.T) {
 	}
 }
 
+=======
+>>>>>>> origin/main
 func TestLogoutRevokesAccessAndRefreshTokens(t *testing.T) {
 	service, _, _ := newTestService(t, nil)
 	parent := registerTestParent(t, service)
