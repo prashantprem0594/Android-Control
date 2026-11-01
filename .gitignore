@@ -32,3 +32,4 @@ recovery/
 firebase-service-account.json
 
 
+.gradle-user/
