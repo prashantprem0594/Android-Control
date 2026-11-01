@@ -1,0 +1,32 @@
+[Unit]
+Description=App Control encrypted backup and independent verification
+After=app-control.service
+
+[Service]
+Type=oneshot
+User=appcontrol
+Group=appcontrol
+WorkingDirectory=/var/lib/app-control
+ExecStart=/opt/app-control/current/deploy/backup.sh
+TimeoutStartSec=6min
+UMask=0077
+StateDirectory=app-control app-control-backups app-control-recovery
+StateDirectoryMode=0700
+RuntimeDirectory=app-control-backup
+RuntimeDirectoryMode=0700
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateNetwork=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ReadWritePaths=/var/lib/app-control /var/lib/app-control-backups /var/lib/app-control-recovery
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=app-control-backup

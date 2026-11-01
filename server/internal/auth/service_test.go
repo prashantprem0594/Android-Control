@@ -143,6 +143,33 @@ func TestRefreshRotatesTokenAndReuseRevokesFamily(t *testing.T) {
 	}
 }
 
+func TestRefreshExtendsExistingSessionFamily(t *testing.T) {
+	service, database, clock := newTestService(t, func(options *Options) { options.RefreshLifetime = 0 })
+	parent := registerTestParent(t, service)
+	_, original, err := service.Login(context.Background(), parent.Email, testPassword)
+	if err != nil {
+		t.Fatalf("login: %v", err)
+	}
+	if want := clock.Now().Add(10 * 365 * 24 * time.Hour); !original.RefreshExpiresAt.Equal(want) {
+		t.Fatalf("default refresh expiry = %v, want %v", original.RefreshExpiresAt, want)
+	}
+	// Model a live session issued under the previous 30-day family limit.
+	if _, err := database.Exec("UPDATE auth_session_families SET expires_at = ?", formatTime(clock.Now().Add(30*24*time.Hour))); err != nil {
+		t.Fatalf("shorten existing family: %v", err)
+	}
+	clock.Advance(15 * time.Minute)
+	rotated, err := service.Refresh(context.Background(), original.RefreshToken)
+	if err != nil {
+		t.Fatalf("refresh existing session: %v", err)
+	}
+	if want := clock.Now().Add(10 * 365 * 24 * time.Hour); !rotated.RefreshExpiresAt.Equal(want) {
+		t.Fatalf("renewed refresh expiry = %v, want %v", rotated.RefreshExpiresAt, want)
+	}
+	if _, _, err := service.Authenticate(context.Background(), rotated.AccessToken); err != nil {
+		t.Fatalf("authenticate after family extension: %v", err)
+	}
+}
+
 func TestLogoutRevokesAccessAndRefreshTokens(t *testing.T) {
 	service, _, _ := newTestService(t, nil)
 	parent := registerTestParent(t, service)

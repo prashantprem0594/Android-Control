@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily App Control encrypted backup
+
+[Timer]
+OnCalendar=*-*-* 03:00:00 UTC
+Persistent=true
+RandomizedDelaySec=5min
+Unit=app-control-backup.service
+
+[Install]
+WantedBy=timers.target

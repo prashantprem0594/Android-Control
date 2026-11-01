@@ -18,6 +18,7 @@ type InstalledApp struct {
 	System      bool   `json:"system"`
 	Blockable   bool   `json:"blockable"`
 	Suspended   bool   `json:"suspended"`
+	Launchable  bool   `json:"launchable"`
 }
 type AppInventory struct {
 	Apps      []InstalledApp `json:"apps"`

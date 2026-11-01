@@ -1,0 +1,42 @@
+[Unit]
+Description=App Control private API and opaque wake-up sender
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=appcontrol
+Group=appcontrol
+WorkingDirectory=/var/lib/app-control
+EnvironmentFile=/etc/app-control/server.env
+ExecStart=/opt/app-control/current/bin/control-server
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=30s
+UMask=0077
+StateDirectory=app-control
+StateDirectoryMode=0700
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+AmbientCapabilities=
+ReadWritePaths=/var/lib/app-control
+InaccessiblePaths=-/etc/app-control/backup-key.bin -/var/lib/app-control-backups -/var/lib/app-control-recovery
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=app-control
+
+[Install]
+WantedBy=multi-user.target

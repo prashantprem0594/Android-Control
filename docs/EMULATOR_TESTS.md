@@ -1,6 +1,35 @@
 # Isolated Android tests
 
+## 26 October network acceptance update
+
+The network-pause runner now uses `10.0.2.2:19089` for both the selected fixture
+UID and management UID (`ipv4-host-gateway-v2`). It adds no ADB reverse mapping:
+loopback success cannot prove VPN packet blocking. The SDK 37 baseline timeout
+was caused by Android 17 local-network permission enforcement. Both production
+apps now declare that permission and expose an explicit foreground setup button.
+With permission granted and VPN registration awaited, the TCP baseline passes,
+the selected fixture UID is blocked during pause, management UID TCP remains
+reachable, and resume restores fixture connectivity. Cleanup passes. This is
+IPv4 gateway evidence; DNS, IPv6, mobile networks and physical OEM behavior
+remain separate checks.
+
+The runner accepts `-DebugUserHome` pointing to the existing base acceptance
+apps' debug signing home and refuses a missing key. In this workspace its default
+is ignored `.tooling/network-signing-home`, populated with the original
+emulator-only debug identity. Pinning this home prevents sandbox and ordinary
+Gradle processes from choosing different debug signers. Do not generate another
+key or uninstall/clear apps to resolve a mismatch. This signing home is distinct
+from production release credentials and the side-by-side HTTPS acceptance apps.
+
 ## 25 October current-build checks
+
+Later version-4 checks also pass real force-stop/new-PID and boot-count-increasing
+reboot persistence for the encrypted contact cache (`cache-persistence-v1`) and
+update replay floor (`replay-persistence-v1`), with isolated state and cleanup.
+The current child also passes synthetic process-death fallback UI and explicit
+post-call role requalification (`process-recovery-v1`); see
+[crash recovery evidence](CALL_FEASIBILITY.md). No automatic child rebind or
+actual SIM/audio/Redmi result is inferred.
 
 The debug child and instrumentation APKs were updated in place to version 3
 without uninstall or data clearing. `sealed-cache-v1` passes the production

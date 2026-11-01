@@ -1,5 +1,7 @@
 # Parent incoming-call watch
 
+The optional parent Firebase variant now has a separate [authenticated event synchronization path](PARENT_FIREBASE_SYNC.md). Local implementation/build checks do not establish live Firebase or OEM delivery. The bounded foreground watch below remains separate.
+
 Open a device's **Foreground calls** screen, choose **Watch incoming calls for
 ten minutes**, review the polling notice and grant Android notification access.
 This starts a visible data-sync foreground service for one child. Starting a
@@ -39,6 +41,29 @@ the service is not exported. No watch/call-state history is persisted. The proce
 retains at most 128 first-seen call identities during its observation window.
 
 ## Limits and acceptance
+
+The optional `-ObserveCallWatchWindow` run on 26 October observed the production
+service's automatic stop after **600807 ms**, checked that the parent session
+and synthetic device were still valid, restarted the watch, and verified logout
+cleanup. All 14 integration stages and fixture cleanup passed:
+`.cache/android-server-https-reports/d1da1d46760e4a288dbb796e12700523.json`.
+Run `scripts/test-android-server-https.ps1 -ObserveCallWatchWindow` to repeat it.
+The marker is `parent_call_watch_window_probe=passed`. The test activity keeps
+its own screen awake; this is visible-app elapsed deadline evidence, not OEM
+background, sleep, process-death, real SIM or live Firebase acceptance.
+
+On 26 October the side-by-side Android 37 acceptance app passed production UI
+start/notification permission, visible service and ringing alert publication,
+private/generic public notification content, immutable review-only intent,
+fresh exact-call review with actions disabled, cleared-call alert removal,
+stale exact-call-gone review, explicit Stop and logout cleanup. The reports are
+synthetic authenticated server snapshots, not Telecom/SIM calls. Evidence:
+`.cache/android-server-https-reports/d6ab3ce2fe064d248be437b44f827d71.json`;
+all 13 integration stages and fixture cleanup passed. The required marker is
+`server_https_parent_call_watch_probe=passed`. Notification permission remains
+granted only on the emulator's disposable `.acceptance` app. Actual elapsed
+ten-minute expiry, lock-screen presentation, process death, OEM background
+behavior, real calls and live parent push remain unverified.
 
 Elapsed realtime bounds observation to ten minutes. Expired watches do not start
 another fetch or publish a late result. Stop, replacement and destruction cancel

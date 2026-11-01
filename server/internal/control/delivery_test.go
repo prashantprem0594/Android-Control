@@ -4,11 +4,49 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
 	"errors"
 	"strings"
 	"testing"
 	"time"
 )
+
+func TestRemoteAssistanceScreenRequiresDeliveredOwnedCommand(t *testing.T) {
+	db, _ := fixture(t)
+	s := NewService(db)
+	ctx := context.Background()
+	now := time.Now().UTC()
+	s.now = func() time.Time { return now }
+	token := session(t, db, "device", "A", now)
+	command, err := s.QueueRemoteScreenshot(ctx, "owner", "device", 60, "remote-screen-request-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	image := base64.StdEncoding.EncodeToString(append([]byte{0xff, 0xd8}, make([]byte, 32)...))
+	if err = s.SaveRemoteScreen(ctx, token, command.ID, image); !errors.Is(err, ErrCommandState) {
+		t.Fatalf("undelivered screen accepted: %v", err)
+	}
+	if _, err = s.Fetch(ctx, token); err != nil {
+		t.Fatal(err)
+	}
+	if err = s.SaveRemoteScreen(ctx, token, command.ID, image); err != nil {
+		t.Fatalf("save screen: %v", err)
+	}
+	screen, err := s.RemoteScreen(ctx, "owner", "device", command.ID)
+	if err != nil || screen.ImageBase64 != image {
+		t.Fatalf("load screen: %+v %v", screen, err)
+	}
+	if _, err = s.RemoteScreen(ctx, "other", "device", command.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("cross-parent screen read accepted: %v", err)
+	}
+	if _, err = s.QueueRemoteTap(ctx, "owner", "device", -1, 0, 30, "remote-tap-request-1"); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("invalid tap accepted: %v", err)
+	}
+	now = now.Add(61 * time.Second)
+	if err = s.SaveRemoteScreen(ctx, token, command.ID, image); !errors.Is(err, ErrCommandState) {
+		t.Fatalf("expired screen accepted: %v", err)
+	}
+}
 
 func session(t *testing.T, db *sql.DB, deviceID, character string, now time.Time) string {
 	t.Helper()

@@ -8,7 +8,7 @@ $configuration = [ordered]@{
     serverOrigin='https://configured-release-fixture.invalid'
     currentPin=[Convert]::ToBase64String([byte[]](1..32));backupPin=[Convert]::ToBase64String([byte[]](33..64))
     apkCertificateSHA256=('a'*64);updatePublicKey=[Convert]::ToBase64String($key)
-    updateMinimumSequence=903;versionCode=4;versionName='0.1.3-config-fixture';remoteCallsEnabled=$false;firebase=$null
+    updateMinimumSequence=903;versionCode=4;versionName='0.1.3-config-fixture';remoteCallsEnabled=$false;firebase=$null;parentFirebase=$null
 }
 $aapt = Join-Path $workspace '.tooling\android-sdk\build-tools\36.0.0\aapt.exe'
 $savedJava = $env:JAVA_HOME
@@ -25,8 +25,9 @@ function Assert-ApkSeparation([string]$Path,[bool]$Firebase) {
             try {
                 $stream.CopyTo($buffer)
                 $dex = [Text.Encoding]::ASCII.GetString($buffer.ToArray())
+                if ($dex.Contains('Lcom/appcontrol/child/Android9CompatibilityProbe;')) { throw 'Android compatibility probe leaked into configured release APK.' }
                 if ($dex.Contains('Lcom/google/firebase/messaging/FirebaseMessaging;')) { $foundFirebase=$true }
-                foreach ($probe in @('Lcom/appcontrol/transport/ServerTrustInstrumentation;','Lcom/appcontrol/child/CallContactCacheProbe;','Lcom/appcontrol/transport/ReleaseArtifactProbe;')) {
+                foreach ($probe in @('Lcom/appcontrol/parent/ParentPushQueueDeathProbe;','Lcom/appcontrol/parent/testing/ParentQueueDeathProbeService;','Lcom/appcontrol/parent/testing/ParentQueueDeathState;','Lcom/appcontrol/parent/ParentPushQueueProbe;','Lcom/appcontrol/parent/testing/ParentQueueProbeService;','Lcom/appcontrol/parent/ParentPushHttpsProbe;','Lcom/appcontrol/parent/push/ParentPushHintChecks;','Lcom/appcontrol/parent/push/ParentPushChecks;','Lcom/appcontrol/parent/push/ParentPushQueueChecks;','Lcom/appcontrol/transport/LocalNetworkSetupProbe;','Lcom/appcontrol/child/ChildContactUiProbe;','Lcom/appcontrol/parent/ParentUiDeviceFixture;','Lcom/appcontrol/parent/ParentUiHttpsProbe;','Lcom/appcontrol/parent/LiveServerHttpsProbe;','Lcom/appcontrol/parent/ParentClientProbe;','Lcom/appcontrol/transport/AcceptanceHttps;','Lcom/appcontrol/transport/AcceptanceTrustFixtureGenerated;','Lcom/appcontrol/child/LiveServerHttpsProbe;','Lcom/appcontrol/transport/ServerTrustInstrumentation;','Lcom/appcontrol/child/CallContactCacheProbe;','Lcom/appcontrol/child/CallContactPersistenceProbe;','Lcom/appcontrol/child/TelecomRecoveryProbe;','Lcom/appcontrol/child/TelecomAudioProbe;','Lcom/appcontrol/child/InternetPauseNetworkProbe;','Lcom/appcontrol/transport/ReleasePersistenceProbe;','Lcom/appcontrol/transport/ReleaseArtifactProbe;')) {
                     if ($dex.Contains($probe)) { throw 'Test-only code leaked into configured release APK.' }
                 }
             } finally { $stream.Dispose();$buffer.Dispose() }
@@ -38,11 +39,15 @@ try {
     $env:JAVA_HOME = 'C:\Program Files\Java\jdk-17'
     $env:GRADLE_USER_HOME = Join-Path $workspace '.cache\gradle'
     # Exercise the opt-in branch first; finish with remote actions disabled.
-    foreach ($mode in @('remote-calls','polling','firebase')) {
+    foreach ($mode in @('remote-calls','polling','firebase','parent-firebase','both-firebase')) {
         $configuration.remoteCallsEnabled = $mode -eq 'remote-calls'
         $configuration.firebase = $null
-        if ($mode -eq 'firebase') {
+        $configuration.parentFirebase=$null
+        if ($mode -in @('firebase','both-firebase')) {
             $configuration.firebase = [ordered]@{applicationId='1:12345:android:abcdef';apiKey=('x'*24);projectId='configured-release-fixture';senderId='12345'}
+        }
+        if($mode -in @('parent-firebase','both-firebase')){
+            $configuration.parentFirebase=[ordered]@{applicationId='1:12345:android:fedcba';apiKey=('p'*24);projectId='configured-release-fixture';senderId='12345'}
         }
         $inputPath = Join-Path $root ($mode+'-public.json')
         [IO.File]::WriteAllText($inputPath,($configuration | ConvertTo-Json -Depth 5),[Text.UTF8Encoding]::new($false))
@@ -54,9 +59,11 @@ try {
             if ((Get-FileHash -LiteralPath (Join-Path $export $file.name) -Algorithm SHA256).Hash.ToLowerInvariant() -cne $file.sha256) { throw 'Exported configuration changed.' }
         }
         $build = Get-Content -LiteralPath (Join-Path $export 'release-arguments.json') -Raw | ConvertFrom-Json
-        $variant = if ($mode -eq 'firebase') { 'fcmRelease' } else { 'release' }
-        $lint = if ($mode -eq 'firebase') { ':child-app:lintFcmRelease' } else { ':child-app:lintRelease' }
-        $gradleArguments = @('--offline','--no-daemon','-Pkotlin.compiler.execution.strategy=in-process') + @($build.arguments) + @($build.tasks) + @(':parent-app:lintRelease',$lint)
+        $variant = if ($null -ne $configuration.firebase) { 'fcmRelease' } else { 'release' }
+        $parentVariant=if($null -ne $configuration.parentFirebase){'fcmRelease'}else{'release'}
+        $lint = if ($null -ne $configuration.firebase) { ':child-app:lintFcmRelease' } else { ':child-app:lintRelease' }
+        $parentLint=if($null -ne $configuration.parentFirebase){':parent-app:lintFcmRelease'}else{':parent-app:lintRelease'}
+        $gradleArguments = @('--offline','--no-daemon','--no-build-cache','-Pkotlin.incremental=false','-Pkotlin.compiler.execution.strategy=in-process') + @($build.arguments) + @(':parent-app:clean',':child-app:clean') + @($build.tasks) + @($parentLint,$lint)
         Push-Location -LiteralPath (Join-Path $workspace 'android')
         try {
             # Gradle writes ordinary compiler warnings to native stderr.
@@ -69,7 +76,8 @@ try {
         $snapshot = Join-Path $root $mode
         $null = New-Item -ItemType Directory -Path $snapshot
         foreach ($app in @('parent','child')) {
-            $selected = if ($app -eq 'child') { $variant } else { 'release' }
+            $selected = if ($app -eq 'child') { $variant } else { $parentVariant }
+            $firebaseExpected=if($app -eq 'parent'){$null -ne $configuration.parentFirebase}else{$null -ne $configuration.firebase}
             $base = Join-Path $workspace ('android\'+$app+'-app\build')
             $configFile = Join-Path $base ('generated\source\buildConfig\'+$selected+'\com\appcontrol\'+$app+'\BuildConfig.java')
             $compiled = [IO.File]::ReadAllText($configFile)
@@ -78,22 +86,33 @@ try {
             }
             $expectedRemote = 'REMOTE_CALLS_ENABLED = '+$configuration.remoteCallsEnabled.ToString().ToLowerInvariant()
             if ($app -eq 'child' -and -not $compiled.Contains($expectedRemote)) { throw 'Compiled remote-call rollout differs from exported inputs.' }
-            if ($app -eq 'child' -and $mode -eq 'firebase') {
+            if ($app -eq 'child' -and $firebaseExpected) {
                 $firebaseFields = @{APPLICATION_ID='applicationId';API_KEY='apiKey';PROJECT_ID='projectId';SENDER_ID='senderId'}
                 foreach ($field in $firebaseFields.Keys) {
                     if (-not $compiled.Contains('FIREBASE_'+$field+' = "'+$configuration.firebase.($firebaseFields[$field])+'"')) { throw 'Compiled Firebase settings differ from exported inputs.' }
+                }
+            }
+            if($app -eq 'parent'){
+                if(-not $compiled.Contains('PARENT_PUSH_ENABLED = '+$firebaseExpected.ToString().ToLowerInvariant())){throw 'Compiled parent push opt-in differs from exported inputs.'}
+                if($firebaseExpected){
+                    $parentFields=@{APPLICATION_ID='applicationId';API_KEY='apiKey';PROJECT_ID='projectId';SENDER_ID='senderId'}
+                    foreach($field in $parentFields.Keys){if(-not $compiled.Contains('PARENT_FIREBASE_'+$field+' = "'+$configuration.parentFirebase.($parentFields[$field])+'"')){throw 'Compiled parent Firebase settings differ from exported inputs.'}}
                 }
             }
             $source = Join-Path $base ('outputs\apk\'+$selected+'\'+$app+'-app-'+$selected+'-unsigned.apk')
             $destination = Join-Path $snapshot ($app+'-unsigned.apk')
             [IO.File]::Copy($source,$destination,$false)
             [IO.File]::Copy($configFile,(Join-Path $snapshot ($app+'-BuildConfig.java')),$false)
-            Assert-ApkSeparation $destination ($app -eq 'child' -and $mode -eq 'firebase')
+            if($app -eq 'parent'){
+                & (Join-Path $PSScriptRoot 'assert-apk-parent-origin.ps1') -Apk $destination -ExpectedOrigin $configuration.serverOrigin
+            }
+            Assert-ApkSeparation $destination $firebaseExpected
             $manifest = @(& $aapt dump xmltree $destination AndroidManifest.xml) -join "`n"
             if ($LASTEXITCODE -ne 0) { throw 'Configured APK manifest inspection failed.' }
-            $hasFirebase = $manifest.Contains('com.appcontrol.child.wakeup.FirebaseWakeupService')
-            if ($hasFirebase -ne ($app -eq 'child' -and $mode -eq 'firebase')) { throw 'Firebase service appeared in the wrong APK variant.' }
-            if ($app -eq 'child' -and $mode -eq 'firebase' -and -not $manifest.Contains('com.appcontrol.child.wakeup.FirebaseApplication')) { throw 'Firebase application missing.' }
+            $service=if($app -eq 'parent'){'com.appcontrol.parent.push.ParentFirebaseMessagingService'}else{'com.appcontrol.child.wakeup.FirebaseWakeupService'}
+            $application=if($app -eq 'parent'){'com.appcontrol.parent.push.ParentFirebaseApplication'}else{'com.appcontrol.child.wakeup.FirebaseApplication'}
+            if($manifest.Contains($service) -ne $firebaseExpected){throw 'Firebase service appeared in the wrong APK variant.'}
+            if($firebaseExpected -and -not $manifest.Contains($application)){throw 'Firebase application missing.'}
             $report = Join-Path $base ('reports\lint-results-'+$selected+'.xml')
             [xml]$lintReport = Get-Content -LiteralPath $report -Raw
             if (@($lintReport.issues.issue | Where-Object { $_.severity -in @('Error','Fatal') }).Count) { throw 'Configured release lint has errors.' }
@@ -103,6 +122,6 @@ try {
     }
     $summary = [ordered]@{schemaVersion=1;createdAt=[datetime]::UtcNow.ToString('o');fixtureOnly=$true;productionReady=$false;updateAuthorityConfigured=$true;liveFirebaseVerified=$false;artifacts=$records}
     [IO.File]::WriteAllText((Join-Path $root 'configured-builds.json'),($summary | ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
-    Write-Output 'Exported remote-opt-in/polling/Firebase argument arrays assembled and passed full lint with matching compiled authority/rollout; final variants disable remote calls. No signing, install, live messaging or deployment.'
+    Write-Output 'Exported remote-opt-in/polling/child-only/parent-only/combined Firebase variants passed full lint, packaged origin and configuration/test-code checks; final variants disable remote calls. No signing, install, live messaging or deployment.'
     Write-Output "Evidence directory: $root"
 } finally { $env:JAVA_HOME=$savedJava; $env:GRADLE_USER_HOME=$savedGradle }

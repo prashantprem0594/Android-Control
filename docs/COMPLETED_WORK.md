@@ -1,5 +1,125 @@
 # Completed work
 
+## Android 17 home-network access and current release fixtures - 26 October 2026
+
+Both apps now declare ACCESS_LOCAL_NETWORK and expose explicit foreground setup. Known private origins stop for consent before requests; private DNS deployments have the same setup button. Production HTTPS origin/pin validation is unchanged. Child setup uses a secure window and disables saved state for pairing/server/name fields.
+
+Gateway HTTPS acceptance passes all 16 integration stages and cleanup at `.cache/android-server-https-reports/2ae09f7cc3da4c7aaba85013f59c9320.json`. Connections use 10.0.2.2 without ADB reverse, an IP-SAN certificate and ephemeral CA/SPKI trust in debug-only acceptance apps. Production DNS-only origin validation remains intact.
+
+The IPv4 TCP VPN fixture passes baseline, selected-UID pause, management-UID reachability, resume and cleanup. Earlier baseline timeouts were caused by missing Android 17 LAN consent. The test now waits for framework VPN registration before checking the selected UID. DNS, IPv6, switching networks, physical Redmi and live Firebase remain unverified.
+
+All six unsigned parent/child configured fixture releases were refreshed after these production changes. Assembly/full lint/configuration and APK test-code exclusion pass: `.cache/configured-releases-92e4cbe479b2402689d6dcd89de3619d/configured-builds.json`. These are fixture artifacts, not signed production releases. This release checkpoint preceded Copilot parent-push server edits. The earlier independently verified server bundle is `.cache/server-checkpoint-20261026-7963355f`.
+
+## Child shortcut UI and actual watch deadline - 26 October 2026
+
+- Added side-by-side child DialActivity cache-to-screen checks: secure window/no saved number state, Call Parent prefill without pressing Call, stale/removed shortcut refusal that preserves manual input, updated shortcut prefill, and exact prior cache/enrollment/key restoration. Calling permission is denied and the dialer role is absent; no permission/role change or outgoing call occurs. This uses locally seeded encrypted fixture contacts, separate from the already verified live CommandSync delivery.
+- Standard 14-stage HTTPS integration and cleanup pass at `.cache/android-server-https-reports/0eda627201664881b5bb5e164b69b4f7.json`. The later explicit `-ObserveCallWatchWindow` run also passes all 14 stages, current inline child safety guards and cleanup: `.cache/android-server-https-reports/d1da1d46760e4a288dbb796e12700523.json`, `.cache/integration-0f6da625bcdf4c0aa165fedc498696e8/result.json`.
+- Production CallWatchService stopped automatically after an observed **600807 ms**. The authenticated parent session and synthetic device remained valid, the watch restarted normally, and UI logout removed it. Only the test activity temporarily keeps its own screen awake; no global screen setting is changed. Required marker: `parent_call_watch_window_probe=passed`. Native visible-app deadline evidence does not establish OEM background/process-death, SIM or family-pilot behavior.
+- Full current Go `vet ./...` passes. Optional elapsed observation refuses non-live invocation before creating a report or running tests; the PowerShell runner syntax checks pass. Commands/results: `logs/build/2026-10-26.txt`.
+
+## Parent call-watch runtime lifecycle - 26 October 2026
+
+- Added live parent foreground-service/notification acceptance using authenticated synthetic server call snapshots. Production UI starts call watch through its notification-permission flow, publishes a private alert with generic public content and an immutable review-only intent, opens fresh exact-call state with remote actions disabled, removes a cleared-call alert, and shows the exact-call-gone message when the old intent is reopened.
+- Explicit Stop removes service/alerts; a second watch is removed by normal UI Sign out. Fixture cleanup also stops the service before clearing its session. The notification permission choice is retained only for the side-by-side emulator `.acceptance` app, which remains installed; no physical-phone permission/settings are changed.
+- The full 13-stage HTTPS suite and outer cleanup pass: `.cache/android-server-https-reports/d6ab3ce2fe064d248be437b44f827d71.json`, `logs/build/2026-10-26.txt`. Required marker: `server_https_parent_call_watch_probe=passed`. No actual incoming/outgoing call, Firebase delivery, ten-minute elapsed expiry, lock-screen visual/OEM behavior or process-death acceptance is claimed.
+
+## Verification evidence snapshot - 26 October 2026
+
+- Verified all four dated build logs (23-26 October) successfully, including 277 entries at the current 26 October cutoff, with no hash exceptions. Created and independently verified `.cache/evidence-checkpoint-20261026-353a6a93.zip` (SHA-256 `67aa6c5ea9d3c5e7c76211e23f627e6d87d879ac66c5fca941d4b88b5be403fb`). Every allowlisted archived file size/hash verifies without extraction.
+- This is a local cutoff snapshot of sanitized logs/contracts/docs/progress, excluding credentials, databases, signing keys, APKs and caches. The archiving command and subsequent documentation are recorded after that cutoff. Off-host archival and production release/deployment evidence remain open.
+
+## Current release artifacts - 26 October 2026
+
+- The three public fixture configurations (remote-call opt-in, disabled polling, disabled Firebase mode) built all six parent/child unsigned release APKs with full lint, matching compiled authority/version settings and test-code exclusion. Evidence: `.cache/configured-releases-1ac0be1f07bf46778db503376c065b57/configured-builds.json`. This checkpoint predates the final parent feedback/error-parser refinement; the child production sources were unchanged afterward.
+- Rebuilt the affected parent release after the final feedback and strict-error changes. Assembly and full release lint pass, its production source snapshot remained unchanged during the build, and final APK inspection excludes test probes, synthetic device helpers and ephemeral acceptance trust. Snapshot: `.cache/parent-release-checkpoint-20261026-24343d49/parent-release.json`. The initial checkpoint assertion incorrectly expected the child-only rollout flag in parent BuildConfig; corrected verification checks the parent deployment fields and the matched child rollout gate. No redundant rebuild was needed after that verification-only correction.
+- All artifacts use public reserved-host fixtures and remain unsigned/non-production. Operator origin/trust/update authority, production signing, deployment and real-device acceptance are still required.
+
+## Parent editing workflows and persistent request feedback - 26 October 2026
+
+- Extended the production ParentActivity HTTPS probe with a server-only synthetic enrolled device whose ephemeral memory key is never installed on a child. The screens create/remove an explicit UTC weekly schedule, save/restore internet-pause intent, show pending confirmation and unknown capabilities, save a primary contact, reject a stale concurrent contact edit without overwriting newer server state, and show a queued lock intent in command history. No child receives or executes that policy/command.
+- Fixed policy/lock request feedback disappearing when asynchronous device-page loading completed. The message is now displayed after the page data renders, preserving the distinction between saved/queued intent and confirmed child behavior.
+- Hardened definitive-call-error parsing against duplicate JSON keys and trailing data; Android regressions confirm those responses retain the saved retry identity. The corrected full 13-stage HTTPS suite and cleanup pass: `.cache/android-server-https-reports/e04c520bb8d641deaa5332ef2f036061.json`, `logs/build/2026-10-26.txt`. The earlier expanded run reached logout but timed out after tapping while the final device list was still loading; it is excluded. The passing probe waits for the populated list before sign-out.
+- Rebuilt and independently verified the current matched Windows/Linux server/tool bundle: `.cache/server-checkpoint-20261026-7963355f` (8 binaries, 125 source rows, 12 modules, 13 license notices). No deployment or database migration was performed.
+
+## Non-loopback VPN acceptance boundary - 26 October 2026
+
+- Replaced the misleading loopback packet target with fixed emulator host gateway `10.0.2.2` for both selected and management UIDs, versioned `ipv4-host-gateway-v2` / `uid-tcp-host-v2`. Removed the unused ADB reverse mapping, so loopback reachability cannot satisfy this proof.
+- The guest can ping the gateway, but baseline raw TCP to the bounded host fixture times out before any pause policy is applied. Repeating with fixture and headless AVD launched outside the sandbox gives the same result. Consent/setup and cleanup pass; no packet-blocking, management-network preservation or physical acceptance is claimed. Logs: `logs/build/2026-10-26.txt`.
+- Pinned the base acceptance APK debug signing home to ignored `.tooling/network-signing-home` (override with `-DebugUserHome`) using the existing emulator-only debug identity. This fixes sandbox/unsandboxed Gradle user-home signing drift without uninstalling, replacing signing identity or clearing app data. A prior mismatched-signer install was refused as intended. The physical parent phone was untouched.
+
+## Recover rejected parent call requests - 26 October 2026
+
+- Fixed a parent recovery gap where an explicitly rejected call request retained its pending retry identity and blocked requests for later calls. Only bounded, single-field `409 call_not_current` or `409 call_state_conflict` responses release an exactly matching key/call/action record. Transport failures, malformed/oversized/unknown errors, idempotency conflicts and rollout-disabled responses retain the identity.
+- Android client instrumentation verifies error parsing, matching-record deletion, mismatched-key refusal, retained ambiguous records and server-error isolation. A Go regression verifies state rejections leave no command, committed requests replay after call removal, and rollout disable can hide an existing committed request (so that response must remain ambiguous).
+- The full 13-stage server/Java/lint/Android/parent-UI HTTPS acceptance and fixture cleanup pass: `.cache/android-server-https-reports/73f916af6804453793aed2a4546b69d8.json`, `logs/build/2026-10-26.txt`. Actual SIM/remote call execution remains unverified; production remote calls remain disabled by default.
+
+## Parent screens over live HTTPS - 26 October 2026
+
+- Added a side-by-side acceptance-only ParentActivity instrumentation probe. It exercises incorrect-password rejection, real sign-in, cleared password fields, device-list rendering, saved-session reopening, revoked-device refusal, fresh pairing-code display, sign-out and signed-out reopening. It uses the production activity/client/vault with ephemeral fixture CA/SPKI trust, and cleans its session/key without touching the physical parent phone.
+- The combined 13-stage suite and outer fixture cleanup pass: `.cache/android-server-https-reports/d989871e5d0a4ddcb697f6847039b39c.json`, `logs/build/2026-10-26.txt`. A separate required `server_https_parent_ui_probe=passed` marker guards the screen coverage. This is same-process activity reopening, not process death/reboot or physical-phone acceptance. Active-device policy/contact editing and runtime call-watch screens remain separate checks.
+
+## Contact-service failure and recovery - 26 October 2026
+
+- Added fixed fault controls only to the disposable loopback HTTPS proxy, with Go isolation/recovery tests included in the acceptance build. A child contact fetch can return 503 while command, policy and parent contact-update routes still reach the server. Production server behavior is unchanged.
+- The Android probe verifies that production CommandSync acknowledges a safely declined command and fetches policy during the contact failure, preserves the exact prior encrypted contact values and readable version, then receives the replacement contact after recovery. A separate required `server_https_contact_recovery_probe=passed` marker prevents older APKs satisfying this acceptance check. Cleanup resets an enabled fault; an explicit non-owner guard precedes any test lock command.
+- The full 12-stage integration suite, proxy tests and HTTPS fixture cleanup pass: `.cache/integration-31c52415106e41ebb5de4dce158129e1/result.json`, `.cache/android-server-https-reports/67652bcd119f49ff84a944423362f27c.json`, `logs/build/2026-10-26.txt`. No physical phone or call was used. This proves contact-route service failure recovery, not full-server downtime, network switching or physical-device behavior.
+
+## Live contact synchronization - 26 October 2026
+
+- Extended the guarded HTTPS acceptance probe to create, replace and clear synthetic parent contacts through the server API. Production `CommandSync` and new `CallContactStore` instances verify encrypted delivery at versions 1, 2 and 3, including changed label/number and an empty final list. Contact fixture preferences are isolated and deleted; existing contact key/cache state is preserved. No call is placed.
+- Added the required `server_https_contact_sync_probe=passed` result to the child probe and integration runner, so older test APKs cannot satisfy this check. The full 12-stage integration suite and outer HTTPS fixture cleanup pass: `.cache/integration-c5b221d835e041bea5cdbd464ab7c753/result.json`, `.cache/android-server-https-reports/b7c094f3298f4c3b94dba6878016c328.json`, `logs/build/2026-10-26.txt`.
+- Parent editing UI, local contact selection, SIM dialing, physical-device delivery and production trust remain open. The physical parent phone was not used.
+
+## Integration checkpoint reconciliation - 26 October 2026
+
+- Re-ran the local integration suite: all eight stages passed, covering the full Go server suite, six Java fixture groups and debug lint for both Android apps. Report: `.cache/integration-e9b4dc817f9742d9b0c7767596a28885/result.json`; commands and outputs: `logs/build/2026-10-26.txt`. This run did not request emulator instrumentation or touch the physical parent phone.
+- Updated integration and command-channel documentation to match the previously passing live HTTPS checkpoint: production EnrollmentClient, AndroidKeyStore authentication and CommandSync refusal/reporting are verified on the isolated non-owner AVD. Successful Device Owner controls, UI flows, production trust and physical-device acceptance remain open.
+
+## Integration harness and parent-phone boundary - 25 October 2026
+
+- Added `scripts/test-integration.ps1` and `docs/INTEGRATION.md`: separate logged stages, failure stops, persistent JSON stage reports, server tests, existing Java fixture runners, Android lint, and optional guarded emulator component probes. This is combined prerequisite verification; it does not claim live Android-to-server acceptance.
+- Corrected combined run passed all 12 stages: full server suite, six Java fixture groups, both-app debug lint, isolated AVD guard, parent client/session and child contact-cache instrumentation. Report: `.cache/integration-b373eba2296a4d20b66c6738f71155fb/result.json`; commands and outputs: `logs/build/2026-10-25.txt`. Initial subprocess quoting and incorrect JUnit invocation failures remain recorded; the passing runner uses the repository's existing executable Java checks.
+- Separate live Android-to-server HTTPS acceptance passed on 25 October 2026: the production child `EnrollmentClient` enrolled with a parent-created code, rejected code reuse, and authenticated an AndroidKeyStore key; `ParentClient` login, refresh, owner device listing, cross-account denial and logout passed. Parent-triggered revocation also invalidated the enrolled device token for subsequent identity and command requests. Production CommandSync fetched the test command and policy, safely declined Device Owner-only execution on the non-owner AVD, acknowledged failure, and reported device_owner_required before parent revocation. The `.acceptance` apps updated in place and test key/preferences and server fixture were cleaned. Evidence: `.cache/android-server-https-reports/d976e72d6d1b4f9298ae1af23cfc63a4.json`, `logs/build/2026-10-25.txt`. Physical phone, production trust, successful Device Owner command/policy application, UI flows, Firebase and release behavior remain unverified.
+- Expanded `TestEnrolledDeviceCommandTransport` to run both handler and actual local HTTPS transport. Both pass enrollment key proof, account isolation, device authentication, command delivery and acknowledgement, duplicate/conflicting acknowledgement, and revocation. Parent authentication in this scenario remains a test double; Android Keystore and platform trust are separate checks.
+- Physical parent phone authorized and read-only inspected: Android 14/API 34; parent package absent. User specifies parent app only and forbids reset or data deletion. No application was installed/launched and no device settings, policy, dialer role or user data were changed. Child tests remain isolated to the acceptance AVD.
+
+## Already-current audio output feedback - 25 October 2026
+
+- Added versioned synthetic audio UI/endpoint checks and reproduced a modern routing feedback bug: the emulator already reported Speaker (current endpoint type 4), but reselecting it created a redundant request and later showed unconfirmed feedback.
+- Fixed `ManagedInCallService.requestAudio`: when no request is pending and the exact selected endpoint is already current, clear stale feedback/generation and succeed without waiting for a new endpoint callback. A pending request still goes through Telecom so newer selections can override it. Android 13 legacy routing is unchanged.
+- Child debug/test/release builds and full release lint pass. `endpoint-feedback-v1` passes actual shortcut and picker selections, observed Speaker and cleared pending feedback. Earpiece is explicitly reported unavailable on this AVD; physical sound, earpiece/wired/Bluetooth, legacy/API matrix and Redmi remain open. Fixed-account cleanup and original role/Telecom restoration pass.
+- Prepared and built a separate stdlib-only bounded loopback `tools/network-fixture` endpoint for forthcoming per-UID internet-pause acceptance. No network listener or VPN packet proof is claimed by this entry.
+- Logs: `logs/build/2026-10-25.txt`. These production-source fixes still require later integrated release reproducibility recheck.
+
+## Child dialer crash fallback - 25 October 2026
+
+- Added an explicit local **Open Android call controls** button when the child has no live call entry, with READ_PHONE_STATE checks, a local permission flow and Telecom.showInCallScreen delegation. No automatic call action or role change. Current child debug/test/release builds and full release lint pass using fixture trust.
+- Built test-only `TelecomRecoveryProbe` and guarded runner. A bounded arming instrumentation emits status while staying alive; the runner validates and SIGKILLs that exact child PID, checks real framework bindings, and always cleans the fixed synthetic account and restores the original dialer. Initial harness issues (instrumentation finishing before kill, active-file sharing, cleanup order) were corrected; failures remain logged.
+- `process-recovery-v1` passes via `preloaded-ui-and-explicit-next-call-requalification`: preloaded Google in-call binding survives actual child SIGKILL; stale local/remote IDs are refused while the call remains active; the new local button opens the actual preloaded UI and its End control disconnects the fixture. After the old call fully ends and normal role qualification is explicitly repeated, the next call reaches the child with a fresh ID and local rejection succeeds. Cleanup removes the fixed account and restores the original role/Telecom dialer. Evidence: `.cache/telecom-recovery-077d611af5824872842c97326a4398f2`, `logs/build/2026-10-25.txt`.
+- Automatic child rebind, mid-call handoff and automatic next-call return were not observed and are not claimed. Current-build normal role/empty dial-pad and the full prior `ui-controls-v1` synthetic answer/hold/resume/mute/end/reject/safety-gate regression also pass after the UI change.
+- No real SIM/outgoing/emergency call or media, physical phone, production authority or deployment was involved. The earlier release reproducibility hashes predate this production UI change; they are historical until a later integrated recheck.
+
+## Copilot backup-task verifier review - 25 October 2026
+
+- Reviewed local verifier/fixtures/docs. Fixed extra-action acceptance (one Exec is insufficient if another action exists), duplicate principal/action fields, missing XML/manifest schedule comparison, root/ancestor reparse rejection, strict boolean registration state and bounded XML parsing.
+- Corrected fixture relocation: every copied test now updates its synthetic absolute launcher path/hash and passes a valid baseline before its targeted tamper. Corrected DTD placement after the XML declaration, so refusal tests prohibited DTDs rather than invalid declaration ordering. Repeated and daily-only positive cases pass along with expanded tamper cases.
+- Reviewed verifier accepts the pre-existing cached export `.cache/backup-task-fixture-e45d8d88a33a4c2f91fe6eb4f26960e6/bundle`. No task registration, launcher execution, database/key contents, ACL or deployment changes. Logs: `logs/build/2026-10-25.txt`.
+- User asked for a larger Copilot task to accelerate delivery; assigned end-to-end optional parent Firebase incoming-call push across parent app/server, with privacy/ownership/freshness/outbox tests and no child/shared-instrumentation edits. Work and live acceptance are not yet claimed complete.
+
+## Android persistence follow-through - 25 October 2026
+
+- Added versioned contact-cache persistence instrumentation and phase runner. Current child/test APKs build and update in place to version 4 on the isolated, unenrolled AVD. Real force-stop with confirmed absent process, a new-PID restart and a real boot-count-increasing reboot all pass. Ciphertext digest, non-exportable key and version-11 floor survive; rollback/conflict refusals preserve state. Explicit fixture/key cleanup passes; production enrollment/contact preferences are untouched.
+- Added and passed `replay-persistence-v1`: the production update replay floor survives a confirmed force-stop/new-PID restart and real boot-count-increasing reboot. Sequence/content hashes persist, identical signed retry works, old sequence and same-sequence conflicting payloads are refused, another authority binding fails closed, and cleanup passes. Uses isolated preferences and public signed fixtures; ephemeral Ed25519 private keys stay only in preparation memory. No download/installer/production authority is involved.
+- User reports Copilot completed dependency inventory/notice copying and logged server/QR/bundle/hash checks, pushed as `c56074a`. Upstream releases were not independently fetched. This commit is recorded as user-reported, not locally verified Git evidence. Suggested the separate read-only server-bundle verifier as Copilot's next task; Android lifecycle work remains separate.
+- Logs: `logs/build/2026-10-25.txt`. No physical phone reset, provisioning, real call, production authority change or deployment.
+
+## Copilot server-bundle verifier review - 25 October 2026
+
+- Reviewed local Copilot verifier/test/docs changes, reported by the user as not yet pushed. Found and fixed missing bundle-root/ancestor junction checks and trailing-dot/space/reserved Windows path rejection. Reserved metadata paths so they cannot also count as artifacts/notices.
+- Added fixtures for root, ancestor and nested junctions, Windows aliases/reserved names and metadata overlap. Added explicit workspace bounds before recursive fixture cleanup; junction nodes are removed without traversing targets first.
+- Expanded fixture suite passes. The reviewed verifier accepts `.cache/license-review-bundle`: 4 artifacts, 122 source rows, 11 module records and 12 notices. It verifies metadata/hashes only and never executes the bundled programs. Logs: `logs/build/2026-10-25.txt`.
+- Gave Copilot the independent next task of offline provisioning-QR binary/notice bundling. Android lifecycle/recovery work remains separate. No changes pushed or deployed by this session.
+
 ## Exported release configuration verification - 25 October 2026
 
 - Added `scripts/test-configured-release-builds.ps1` to build directly from freshly exported public argument arrays using reserved fixture origin/pins, synthetic update authority and version 4. It snapshots unsigned APKs, compiled BuildConfig, full lint XML and hashes; only complete runs publish `configured-builds.json`.
@@ -110,7 +230,7 @@
   test Firebase project and collect device evidence before changing either
   FCM acceptance gate.
 
-## APK inspection � 24 October 2026
+## APK inspection ï¿½ 24 October 2026
 - Shared ReleaseArtifact verifier and conservative same-key/increasing-version upgrade guard implemented.
 - Parent app/test APK builds and Android 37 actual disposable-signed APK inspection pass, including signed metadata, debug/content and incompatible upgrade-baseline rejection.
 - Corrected private-storage ancestor path handling after an initial failed probe. Cleanup and test-fixture exclusion from application APKs pass.

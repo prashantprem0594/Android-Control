@@ -28,15 +28,18 @@ public abstract class ReleaseActivity extends Activity {
     private Intent confirmation;
     private boolean busy,submitting;
     private Button button(LinearLayout column,String label,Runnable action){
-        Button button=new Button(this);button.setText(label);button.setAllCaps(false);
+        Button button=new Button(this);button.setText(label);AppAppearance.styleButton(button,label.equals("Install verified update")||label.equals("Check for update"));
         button.setOnClickListener(view->{if(!busy)action.run();});column.addView(button);return button;
     }
     @Override public void onCreate(Bundle saved){
         super.onCreate(saved);
-        LinearLayout column=new LinearLayout(this);column.setOrientation(LinearLayout.VERTICAL);column.setPadding(32,32,32,32);
-        TextView title=new TextView(this);title.setText("App updates");title.setTextSize(26);column.addView(title);
-        status=new TextView(this);status.setTextSize(18);column.addView(status);
-        details=new TextView(this);details.setPadding(0,20,0,20);column.addView(details);
+        AppAppearance.prepare(this);
+        LinearLayout column=AppAppearance.column(this);
+        column.addView(AppAppearance.text(this,"APP CONTROL / UPDATES",12,true));
+        column.addView(AppAppearance.text(this,"App updates",30,true));
+        LinearLayout summary=AppAppearance.card(this);column.addView(summary);
+        status=AppAppearance.text(this,"",18,true);summary.addView(status);
+        details=AppAppearance.text(this,"",14,false);AppAppearance.status(details);summary.addView(details);
         check=button(column,"Check for update",this::download);
         install=button(column,"Install verified update",this::requestInstall);
         confirm=button(column,"Open Android confirmation",()->{
@@ -70,12 +73,14 @@ public abstract class ReleaseActivity extends Activity {
             default:status.setText("Check for a signed update from your server.");
         }
         boolean pending=ReleaseInstaller.hasPending(this),configured=!updatePublicKey().isEmpty();
-        check.setEnabled(!busy&&!pending&&configured);
+        boolean verificationSupported=ReleaseUpdate.verificationSupported();
+        check.setEnabled(!busy&&!pending&&configured&&verificationSupported);
         install.setEnabled(!busy&&!pending&&prepared!=null);
         confirm.setVisibility(confirmation==null?View.GONE:View.VISIBLE);confirm.setEnabled(!busy);
         resume.setVisibility(pending?View.VISIBLE:View.GONE);resume.setEnabled(!busy);
         cancel.setVisibility(pending?View.VISIBLE:View.GONE);cancel.setEnabled(!busy);
         if(!configured)details.setText("App updates are not configured. Contact your server operator.");
+        else if(!verificationSupported)details.setText("This Android version cannot verify private updates. Ask your operator to install a signed update using Android's installer.");
     }
     private void download(){
         if(prepared!=null){prepared.close();prepared=null;}

@@ -28,11 +28,12 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["package", "versionCode", "versionName", "minSdk", "targetSdk", "url", "bytes", "sha256", "signingCertificateSHA256"],
+      "allOf": [{"if": {"properties": {"package": {"const": "com.appcontrol.parent"}}}, "then": {"properties": {"minSdk": {"minimum": 33}}}}],
       "properties": {
         "package": {"enum": ["com.appcontrol.parent", "com.appcontrol.child"]},
         "versionCode": {"type": "integer", "minimum": 1, "maximum": 2100000000},
         "versionName": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+\\-]{0,63}$"},
-        "minSdk": {"type": "integer", "minimum": 33, "maximum": 100},
+        "minSdk": {"type": "integer", "minimum": 28, "maximum": 100},
         "targetSdk": {"type": "integer", "minimum": 33, "maximum": 100},
         "url": {"type": "string", "format": "uri"},
         "bytes": {"type": "integer", "minimum": 1, "maximum": 268435456},

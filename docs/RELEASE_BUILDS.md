@@ -1,5 +1,25 @@
 # Private release preparation
 
+A later independent DEX inspection confirms the packaged ParentClient server accessor in all three stored parent configurations contains the requested fixture origin. The new scripts/assert-apk-parent-origin.ps1 gate also rejects a known stale debug acceptance APK with an empty compiled origin. Configured release verification now invokes this gate; generated BuildConfig source alone is insufficient to establish the packaged accessor value. This inspection does not verify every other compiled constant.
+
+Current 26 October checkpoints: six unsigned fixture parent/child artifacts
+across opt-in/polling/Firebase configurations pass assembly/full lint and
+configuration/test-code checks in
+`.cache/configured-releases-92e4cbe479b2402689d6dcd89de3619d/configured-builds.json`.
+This checkpoint includes the parent request-feedback/strict-error fixes and
+Android 17 foreground local-network permission setup in both apps. APK checks
+exclude UI probes, the synthetic device helper and acceptance TLS code. Earlier
+1ac0be and 24343d49 checkpoints predate the local-network changes.
+These use reserved fixture origins/public authority values, are unsigned, and
+are not production releases. Commands/results: `logs/build/2026-10-26.txt`.
+
+A later child call-controls fallback UI change passed child debug/test/release
+builds and full lint on 25 October. The two-clean-build comparisons below predate
+that production-source change; retain their hashes as historical until the next
+integrated release recheck. The enabled-configuration checks are also scoped to
+their recorded source snapshot. Parallel parent push implementation remains a
+separate integration task.
+
 Use the [public configuration exporter](PRODUCTION_CONFIGURATION.md) to validate
 deployment build inputs together and export argument arrays for both apps.
 Its structural checks do not establish production readiness.

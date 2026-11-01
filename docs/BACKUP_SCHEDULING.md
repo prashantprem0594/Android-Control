@@ -57,6 +57,39 @@ schedule, last result, hashed command log and verified snapshot under that
 identity. Microsoft's [daily trigger XML example](https://learn.microsoft.com/en-us/windows/win32/taskschd/daily-trigger-example--xml-)
 documents the format. The exporter runs no registration command.
 
+Verify an exported bundle without registering the task or running its launcher:
+
+```powershell
+& .\scripts\run-logged.ps1 -TaskId P6-VERIFY -Category verification -Command '& .\scripts\verify-backup-task-bundle.ps1 -BundleDirectory .cache\backup-task-export'
+```
+
+The verifier checks the XML and launcher hashes against `bundle.json`, requires
+matching manifest/XML principal SIDs, S4U and `LeastPrivilege`, the
+`IgnoreNew` overlap policy, and the expected bounded execution limit derived
+from the manifest timeout. XML parsing prohibits DTDs and disables external
+resolvers. It does not execute or register the exported task or inspect any
+database/key contents.
+
+Review on 25 October tightened the checks to reject root/ancestor reparse points,
+extra actions and duplicate action/principal fields. The XML daily/repetition
+schedule must match the manifest interval, and XML parsing is bounded to 1 MiB.
+Both daily-only and repeated synthetic exports pass. Copied fixtures first
+retarget their synthetic absolute launcher path and pass baseline verification,
+so unrelated path mismatches cannot satisfy negative cases. The DTD fixture is
+placed after the XML declaration to exercise DTD prohibition correctly.
+
+The verifier also passes the cached export at
+`.cache/backup-task-fixture-e45d8d88a33a4c2f91fe6eb4f26960e6/bundle`, without
+opening its database/key paths or executing its launcher. XML launcher references
+are absolute: copying a real export to another directory does not make it valid
+there; re-export the reviewed deployment paths rather than rewriting a bundle.
+
+Run positive and tampered fixtures through the logger:
+
+```powershell
+& .\scripts\run-logged.ps1 -TaskId P6-VERIFY-TEST -Category test -Command '& .\scripts\test-backup-task-bundle-verification.ps1'
+```
+
 A synthetic bundle exported successfully; XML/settings and launcher syntax
 checks passed without opening its nonexistent database/key. Task Scheduler
 in-memory schema validation was unavailable. No task was registered/executed.

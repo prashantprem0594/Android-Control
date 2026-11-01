@@ -94,8 +94,8 @@ class ManagedInCallService : InCallService() {
             try {
                 RemoteCallSnapshotSync(applicationContext).publish()
                 succeeded = true
-            } catch (failure: Exception) {
-                Log.w("ManagedInCallService", "Call snapshot sync failed (${failure.javaClass.simpleName})")
+            } catch (_: Exception) {
+                Log.w("ManagedInCallService", "Call snapshot sync failed")
             }
             snapshotHandler.post {
                 snapshotPending = false
@@ -141,7 +141,7 @@ class ManagedInCallService : InCallService() {
         if (Build.VERSION.SDK_INT < 34) {
             val pending = pendingRoute
             val matching = if (pending?.startsWith("legacy:") == true) pending.removePrefix("legacy:").toIntOrNull() == state.route
-                else if (pending?.startsWith("bluetooth:") == true && checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED)
+                else if (pending?.startsWith("bluetooth:") == true && hasBluetoothPermission())
                     runCatching { state.route == CallAudioState.ROUTE_BLUETOOTH && state.activeBluetoothDevice == bluetoothChoices[pending] }.getOrDefault(false)
                 else false
             if (matching) { pendingRoute = null; routeCallId = null; routeRequestMessage = null }
@@ -215,7 +215,7 @@ class ManagedInCallService : InCallService() {
                     if (state.supportedRouteMask and route != 0) choices.add(AudioChoice("legacy:$route", pair.first, pair.second))
                 }
                 if (state.supportedRouteMask and CallAudioState.ROUTE_BLUETOOTH != 0) {
-                    if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED)
+                    if (!hasBluetoothPermission())
                         choices.add(AudioChoice("bluetooth-permission", "Allow Bluetooth audio access", "bluetooth", true))
                     else {
                         val devices = state.supportedBluetoothDevices.toList()
@@ -223,7 +223,8 @@ class ManagedInCallService : InCallService() {
                         devices.forEach { device ->
                             val id = bluetoothChoices.entries.firstOrNull { it.value == device }?.key
                                 ?: "bluetooth:${UUID.randomUUID()}".also { bluetoothChoices[it] = device }
-                            val label = runCatching { device.name }.getOrNull()?.takeIf { it.isNotBlank() } ?: "Bluetooth device ${devices.indexOf(device) + 1}"
+                            val name = try { device.name } catch (_: SecurityException) { null }
+                            val label = name?.takeIf { it.isNotBlank() } ?: "Bluetooth device ${devices.indexOf(device) + 1}"
                             choices.add(AudioChoice(id, label, "bluetooth"))
                         }
                     }
@@ -236,6 +237,16 @@ class ManagedInCallService : InCallService() {
     fun requestAudio(callId: String, choiceId: String): Boolean {
         val choice = audioChoices(callId).firstOrNull { it.id == choiceId && !it.requiresBluetoothPermission } ?: return false
         if (!active(callId)) return false
+        // Telecom need not send another endpoint-change callback for an output
+        // that is already current. Do not leave redundant requests unconfirmed.
+        // A different in-flight request must still be overridden through Telecom.
+        if (Build.VERSION.SDK_INT >= 34 && pendingRoute == null && runCatching {
+                currentCallEndpoint?.let { "endpoint:${it.identifier}" } == choice.id
+            }.getOrDefault(false)) {
+            clearAudioRequest()
+            CallRegistry.changed()
+            return true
+        }
         val generation = ++routeGeneration
         pendingRoute = choice.id; routeCallId = callId; routeRequestMessage = "Audio change requested; awaiting Telecom."
         fun failed() {
@@ -251,7 +262,7 @@ class ManagedInCallService : InCallService() {
                     override fun onError(error: CallEndpointException) { failed() }
                 })
             } else if (choice.id.startsWith("bluetooth:")) {
-                check(checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED)
+                check(hasBluetoothPermission())
                 val device = checkNotNull(bluetoothChoices[choice.id])
                 check(callAudioState?.supportedBluetoothDevices?.contains(device) == true)
                 requestBluetoothAudio(device)
@@ -267,6 +278,9 @@ class ManagedInCallService : InCallService() {
             true
         }.getOrElse { failed(); false }
     }
+    private fun hasBluetoothPermission(): Boolean =
+        Build.VERSION.SDK_INT < 31 || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+
     fun requestSpeaker(callId: String, speaker: Boolean): Boolean {
         val choices = audioChoices(callId)
         val choice = if (speaker) choices.firstOrNull { it.kind == "speaker" }

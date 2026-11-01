@@ -71,6 +71,30 @@ func TestSignedManifestBindsOriginSignerSequenceAndExpiry(t *testing.T) {
 		t.Fatal("altered signed metadata accepted")
 	}
 }
+func TestChildAndroid9ReleaseMetadata(t *testing.T) {
+	manifest, now := fixture()
+	manifest.Apps[1].MinSDK = 28
+	public, private, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := Sign(manifest, private, now)
+	if err != nil {
+		t.Fatal("Android 9 child release rejected", err)
+	}
+	if _, err := Verify(raw, public, manifest.Origin, manifest.Apps[0].SigningCertificateSHA256, 7, now); err != nil {
+		t.Fatal(err)
+	}
+	manifest.Apps[1].MinSDK = 27
+	if manifest.Validate(manifest.Origin, manifest.Apps[0].SigningCertificateSHA256, 7, now) != ErrInvalid {
+		t.Fatal("unsupported child SDK accepted")
+	}
+	manifest.Apps[1].MinSDK = 28
+	manifest.Apps[0].MinSDK = 28
+	if manifest.Validate(manifest.Origin, manifest.Apps[0].SigningCertificateSHA256, 7, now) != ErrInvalid {
+		t.Fatal("unsupported parent SDK accepted")
+	}
+}
 func TestManifestRejectsUnsafeArtifactAndLifetimeMetadata(t *testing.T) {
 	mutations := []func(*Manifest){
 		func(m *Manifest) { m.Apps[0].URL = "https://other.example.org/releases/7/parent-release.apk" },

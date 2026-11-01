@@ -1,5 +1,89 @@
 # App Control: Android Studio handoff
 
+## Offline deployment package and phone readiness: 29 October 2026
+
+At user request, multiple agents implemented the next deployment/acceptance steps. Added `scripts/export-linux-deployment.ps1` and 14 passing export/refusal scenarios. Export requires a trusted original bundle manifest hash, independently verifies source artifacts, selects exactly four matching Linux ELF tools, and copies only allowlisted deployment/docs/license/metadata files into a new exclusive output. Actual AMD64 package: `.cache/linux-deployment-58b743b204804f8c9d14789c4a225ae5`, 26 files. `deployment.json` SHA256 `f1677cbfe2b8b80c4d6b6ecbd4e9259fb6a81708262d69eb096d9ddfb7fda81c`. Agent and root independently reverified hashes/sizes (`LINUX-DEPLOYMENT-EXPORT`, `LINUX-DEPLOYMENT-REAL`, `LINUX-DEPLOYMENT-FINAL`). No credentials or deployment included.
+
+Added `deploy/linux/preflight.sh`: read-only fixed-layout checks for tools/accounts, protected files/parents, key shape/mode, loopback defaults, unfilled placeholders, systemd config and Caddy config as its actual user. Optional --running HTTPS_ORIGIN checks local/public readiness without CA bypass; starts nothing. Permanent local shell/static tests pass (`HOST-PREFLIGHT-STATIC`); native host execution remains unperformed.
+
+Added designated-phone read-only reporting/parser tests/docs: `scripts/check-phone-readiness.ps1`, `phone-readiness-rules.ps1`, `test-phone-readiness.ps1`, `docs/PHONE_ACCEPTANCE.md`. Checks role/serial/model/API, installed app/SDK/version, active-user notification grant, Device Owner observation and exact messaging-service declaration. All acceptance flags stay false. Mock tests pass (`PHONE-READINESS-RULES`); real parent invocation reports absent (`PHONE-READINESS-PARENT`). No phone connected at this continuation. No install, data/permission/provisioning/call/screen/network action performed by reporter.
+
+User has been asked where actual server should run (existing host/domain, temporary laptop, or hosting selection) and whether a real Firebase project exists. Those answers have not been supplied. Do not invent host/account/credentials, deploy/buy services, generate replacement identity keys, or treat offline preparation as real call/policy/screen-off/pilot acceptance. Use the prepared package once destination and controlled HTTPS/Firebase inputs are supplied.
+
+## Deployment/setup implementation: 29 October 2026
+
+User requested implementation with agents. Added `deploy/linux/` nonroot systemd service, private env template, controlled-certificate Caddy proxy, encrypted backup runner/service/timer; instructions in `docs/SERVER_HOSTING.md`. Local syntax/config contracts pass (`SERVER-HOSTING-TEMPLATES`); native Linux/Caddy/systemd not executed. Fresh Linux-amd64 four-tool bundle independently verifies at `.cache/server-hosting-ece47e8caa4349f085e9e5b689470c01` (142 source rows, ten modules, eleven notices; `SERVER-HOSTING-BUNDLE`).
+
+Added `scripts/import-firebase-public-settings.ps1`: extracts only four public fields for exact parent/optional child packages from actual Android google-services.json, rejecting private/ambiguous/malformed inputs and writing exclusive hashed completion output. Focused/refusal/privacy tests pass (`FIREBASE-PUBLIC-IMPORT`). Added `scripts/build-wakeup-test-apks.ps1`: validates imported hashes/settings and controlled HTTPS pins, builds/lints parent Firebase plus optional child Firebase/polling debug APKs, inspects actual packaged parent origin, and writes verified snapshots and `wakeup-build.json`. No release/update keys required for this debug proof; private updates and remote-call control stay disabled. Input/refusal/newline tests pass (`WAKEUP-INPUTS`). End-to-end fixture builder passed 88 tasks and origin inspection (`WAKEUP-BUILD-LAUNCHER`): `.cache/wakeup-debug-fixture-8218b0701cb6490fb4bb4253b100c9ec/wakeup-build.json`, fixture=true, productionReady=false, installed=false. No fixture Firebase build installed/launched.
+
+Next required real inputs: chosen host/domain and HTTPS certificate/pin identities, operator Firebase Android config file paths and server-only sender/routing-key file paths. Setup tools/guide are ready; no cloud account, host, service, Firebase sender, credentials or deployment was created. Physical Device Owner/calls/network/screen-off live-delivery/reliability/pilot gates remain open. User may disconnect phones during setup preparation. Use `docs/FIREBASE_PROJECT_SETUP.md` and `docs/LIVE_SETUP_INPUTS.md` to proceed without inventing identities or treating fixtures as production.
+
+## Own-server / wake-up-only Firebase completion: 29 October 2026
+
+User authorized agents and asked to implement the agreed architecture quickly. Two agents audited server and Android. Existing integration already keeps all business/auth data on our server; FCM carries only canonical opaque syncHint plus routing/priority/lifetime metadata. Android callback enqueues bounded work; authenticated own-server feed/current-call fetch determines notification content and available actions. No new Android lifecycle bug found, so no speculative keepalive/retry rewrite was added.
+
+Concrete server fix: only HTTP404 with explicitly typed FCM UNREGISTERED can remove a registration; inconsistent UNREGISTERED bodies on transient/auth/redirect responses retain it. Regressions cover 429/503/401/307 and untyped404. Focused parentpush/control-server tests pass (`PARENT-WAKE-BOUNDARY`). Both parent/child Firebase debug assemblies and full FCM lint pass (88 tasks, `WAKEUP-FCM-BUILDS`), using clearly synthetic public settings; these FCM artifacts were not installed or launched and are not live configured builds. Existing ordinary debug APKs remain separate. Documentation contract/implementation status corrected to match implemented local code rather than obsolete foundation-only text.
+
+Activation remains dependent on real controlled HTTPS trust, Firebase public settings, server-only sender credentials/routing key, an always-on host and real device tests. The development laptop need not stay on when the server runs on another host. User may disconnect phones during code/build work; reconnect for real delivery acceptance. Do not claim full production/screen-off/FCM acceptance or deploy fixture artifacts.
+
+## Latest verification and parent screen-off requirement: 29 October 2026
+
+Resume after pause: parent reconnected, then passed a ten-second screen-off process-survival/wake/reopen smoke (`PARENT-SCREEN-OFF-SMOKE`). First immediate display-state check failed; bounded transition polling fixed the check. Same PID survived; no push, server request or deep-Doze behavior tested. Services/configuration still unresolved; user asked whether server/Firebase already exist or need setup. Exact next inputs are in `docs/LIVE_SETUP_INPUTS.md`. Do not repeat completed local suites without a new change/failure, and do not equate this smoke with delivery acceptance.
+
+Parent-device continuation: Redmi 14 5G now connected as I7MVZPB6ZLJRY95X, beryl/model 24094RAD4I, Android14/API34, HyperOS OS1.0. Child disconnected. Parent manually installed after USB refusal; installed version/min/target and startup/process verified. UI automation opens **Background alert status** and confirms ordinary build reports continuous alerts unavailable (`PARENT-PREFLIGHT`, `PARENT-LAUNCH`, `PARENT-STATUS-UI`). User input requested: whether real server/Firebase configuration exists or needs setup. No sign-in or real screen-off delivery yet. This supersedes older parent-disconnected statements.
+
+User requested verification of everything and parent operation with the screen off. All 12 stages in `.cache/integration-e3a7c65b32c24e01b0105910f26b3d2f/result.json` passed; full server tests, JVM checks and both lint tasks included. Go vet passed. Physical child API28 also passes request/deadline/stalled TLS cleanup, Android queue late-enqueue/redelivery/cancellation, and isolated command-journal process-death/no-repeat checks. No real device policy or call was executed. ParentActivity now exposes **Background alert status** on login and device list: build support, session, notifications, OS background restriction and Android settings. Fresh parent assembly/full lint passes with `--rerun-tasks --no-build-cache` (`PARENT-BACKGROUND-UI`).
+
+Screen-off audit found push jobs independent of Activity destruction, with high-priority FCM hints and expedited authenticated synchronization. Ordinary builds disable continuous push; manual watch is ten minutes and is not continuous idle acceptance. The new `docs/SCREEN_OFF_ACCEPTANCE.md` records the real-device matrix. Only child serial `43c0acdd` is connected; Redmi 14 5G parent and real service configuration are pending. Do not claim screen-off/Doze/Firebase/real-call acceptance from these local passes. Further work requires parent-device access/configuration plus explicit Device Owner provisioning scope for child policy acceptance; no reset has been authorized.
+
+## Device-role correction: 29 October 2026
+
+Latest physical result supersedes disconnected/pending-runtime statements below: installed child version 1/0.1.0 verified on Redmi Note 5 Pro API28; test APK installed successfully through ADB. Compatibility runner now passes capabilities/legacy dialer intent plus separate `am start`/resumed-activity/PID launch checks. Instrumentation ActivityMonitor/startActivitySync waits did not complete on MIUI; test harness corrected without production-source changes. Retain those failures and the deliberately stopped first run. Production Keystore generation/non-exportability/authentication/domain-separation probe passes twice with an unchanged public fingerprint across process restarts. Logs: `ANDROID9-LAUNCH`, `ANDROID9-PROBE-FIX`, `ANDROID9-PROBE-INSTALL`, `ANDROID9-DEVICE`, `P1-004` in `logs/build/2026-10-29.txt`. No Device Owner, reset, policy, call, network or Firebase acceptance performed.
+
+Android 9 compatibility implementation and build verification completed at user request. Child minimum SDK is now 28; parent remains 33. Legacy dialer, notifications, emergency-number classification, call state, Bluetooth, alarms, VPN, bounded network reads, package inspection and installer/provisioning APIs are guarded. Both debug APKs, child instrumentation APK and both full debug lint tasks pass (`ANDROID9-COMPAT`, 124 tasks; child 0 errors/54 warnings, parent 0 errors/79 warnings). Release metadata Go tests and bounded-input JVM checks pass. Child APK minimum metadata and compatibility-probe separation pass (`ANDROID9-ARTIFACT`). Use `C:\Gradle\gradle-9.6.0\bin\gradle.bat`, workspace Gradle cache and quoted `"-Pkotlin.compiler.execution.strategy=in-process"`; earlier wrapper download and lint/argument failures are retained as historical evidence. Child disconnected during verification: no installation or runtime pass. Reconnect and install matching child debug/test APKs, then run `scripts/test-android-child-compatibility.ps1 -Serial 43c0acdd`. This checks capability reporting, legacy dialer intent and main UI only. Ed25519 private updates remain unavailable when the OS lacks the required verifier; the UI explains operator installation. No provisioning/reset performed. Real calls/policies/network/FCM/production/pilot gates remain open.
+
+The user confirmed Redmi 14 5G as the parent phone and the connected Redmi Note 5 Pro as the child phone. This supersedes older descriptions below calling the connected physical phone parent-only. Read-only ADB preflight found Android 9/API 28, MIUI V11 and no App Control packages on the child. Both apps currently require Android 13/API 33, so physical app acceptance is blocked on compatibility. SIM availability and the parent's Android version remain unverified. No installation, provisioning, reset or OS replacement was performed or authorized by this role clarification. Preserve the separate parent phone from child fixtures.
+
+## Current continuation checkpoint: 27 October 2026
+
+Resumed at user request with three agents reviewing server, Android and tooling. The older paused checkpoint below is historical and is superseded by these saved results:
+
+- Second three-agent continuation closed local framework/recovery gaps. Parent push JobScheduler acceptance and cleanup pass with automatic retained-item redelivery, late-work coalescing, cancellation and generation reset (`PARENT-QUEUE-RUNTIME`). Debug fixture I/O is substituted; no Firebase/process-death/OEM claim. Initial retry timeout remains a failed historical run. Encrypted restore now verifies push routing-key/lease/expiry and operator recovery boundaries (`server/internal/parentpush/recovery_test.go`). Read-only production input inventory and validation tests pass. Updated acceptance APKs preserve signing/data and run only on the isolated AVD; production apps and the physical phone were untouched.
+
+- Final resumed Android audit passed both debug APK builds, both instrumentation APK builds and both debug lint tasks offline (156 tasks; logged `P5-004`, 27 October). Parent push event/ledger, hint and queue JVM checks pass. No Android source changes were needed. This build did not install or launch apps and does not prove live Firebase or framework queue execution.
+- Local gateway HTTPS report `.cache/android-server-https-reports/c78ab8b94fa5412c8e26994536dee064.json` passed with cleanup passed and parent push API acceptance enabled. The logged instrumentation includes the corrected production enrollment and parent push client/API markers. This is local authenticated HTTPS acceptance, not live Firebase delivery.
+- The complete five-mode, ten-APK matrix is `.cache/configured-releases-5b51979d783e4baea6c13f86134e2a0c/configured-builds.json`. Every artifact records full lint, compiled authority matching and APK separation passed. Artifacts use fixture settings, are not production ready, and do not prove signing or live Firebase.
+- A newer server bundle exists at `.cache/server-bundle-independent-20261027-0004`; its build and independent verification are recorded in `logs/build/2026-10-27.txt`. The evidence snapshot `.cache/evidence-20261027T0025-b4f2d529469040a184f621bf860582f0.zip` was verified against SHA-256 `806dacbc2285a8e5e893e58e5c668259aad3d826b806b8d91ffdfabf818ef70e`.
+- Remaining external gates: dedicated child Redmi/test SIM and physical acceptance; real Firebase projects/delivery and OEM background behavior; production HTTPS/signing/update configuration; deployed backup/restore and recovery; reliability/battery/latency observations and supervised family pilot. The physical phone remains parent-only. Never reset it, clear its data, or run child fixtures on it.
+
+See `docs/REMAINING_WORK.md` for the current actionable checklist. Further verification from this resumed review will be recorded there and in the dated log.
+
+## Historical paused checkpoint: 26 October 2026
+
+PAUSED at user request to conserve usage. All worker agents have stopped; no new builds/tasks should start until the user resumes. The interrupted release matrix .cache/configured-releases-46ee523fb3ab4e28b1f0a02a01a6a597 retains four partial artifacts but has no final summary and is NOT a completed pass. Its process and Gradle daemon were confirmed stopped. Earlier paragraphs describing that matrix as running are historical.
+
+Latest saved, UNVERIFIED refinements: parent expedited/regular fixed components (5703/5701), durable bounded dirty-hint coalescing and five-delivery cap, with ParentPushQueueState/ParentPushQueueChecks; ParentPushHttpsProbe and optional -ExerciseParentPushApi/-RequireParentPushApi fixture wiring with an ephemeral parent-routing-key.bin outside APK assets. Fixture privacy/fault Go checks pass. ParentClientProbe has parent_push_client_probe; corrected child probe has server_https_production_enrollment_probe. New runtime assertions have not been exercised.
+
+Copilot completed sender/worker and reported full Go tests/vet passed before final review changes. A later agent saved sender.go/sender_test.go fixes: HIGH priority, one bounded OAuth+HTTP attempt, TTL recomputed after OAuth, deterministic clock tests. Only gofmt/diff checks ran for those final fixes. On resume, first run logged `go test -count=1 ./internal/parentpush -run ParentFCM`, Java ParentPushQueueChecks, then appropriate full Go/vet and Android builds/lint before any live suite. Feed hardening focused tests passed before the sender refinements. Do not claim live Firebase delivery or launch configured FCM fixture APKs. Preserve all uncommitted work and the parent-only phone constraint.
+
+Parent Firebase/sync agent integration (26 October): user explicitly authorized parallel agents; three agents completed parent variant/callback, authenticated sync/notifications, and server event feed. Ordinary APKs remain Firebase-free; parent opt-in is appControlParentFirebase with separate public settings and auto-init disabled. New source details are in docs/PARENT_FIREBASE_SYNC.md. Focused Go feed checks pass; JVM opaque-hint and state/dedupe checks pass; initial parent debug/androidTest/FcmRelease assembly and full lint pass. Final five-mode/ten-APK matrix is running under P7-001-PARENT-FIREBASE-MATRIX, checkpoint .cache/configured-releases-46ee523fb3ab4e28b1f0a02a01a6a597. ParentClientProbe adds parent_push_client_probe; corrected child probe requires server_https_production_enrollment_probe. Both new runtime markers await the next live suite after sender integration. No real Firebase request or FCM fixture launch occurs in these builds.
+
+Copilot owns the sender/worker under docs/COPILOT_PARENT_PUSH_SENDER_TASK.md. The prior coordination report 5d8fd31417cc409c934c68772c29f776 is terminal passed/cleanup passed, so its wait is over. Root/agents added feed.go/feed_test.go and new HTTP feed route/tests plus one registration hook; preserve those during sender edits. Do not spawn additional agents without user authorization (current user authorization covers accelerating item2; completed agents remain available for scoped follow-ups).
+
+Latest integrated foundation checkpoint: `.cache/android-server-https-reports/5d8fd31417cc409c934c68772c29f776.json` is passed with cleanup passed (17 integration stages, including real LAN denial/retry and packaged origin). Copilot's sender task can proceed; its foundation passed focused/full Go tests and vet and is documented in docs/PARENT_PUSH_IMPLEMENTATION.md.
+
+A subsequent test-only correction switches LiveServerHttpsProbe from legacy enrollment.EnrollmentClient to network.DeviceEnrollmentClient used by MainActivity and CommandSync. It also requires foreign-origin rejection before key creation and a successful session request immediately before revocation, followed by rejection afterward. Required marker: server_https_production_enrollment_probe. Build-only verification is in progress; the corrected runtime proof remains pending the sender integration. Earlier 17-stage evidence does not include these new assertions. Production Android sources did not change.
+
+The user requested continuous work until completion. Hardware, production and elapsed pilot gates remain unfinished; do not claim whole-project completion from local tests. Older sections are historical.
+
+- Android 17 local-network permission is declared in both apps, with explicit foreground setup buttons and no TLS/trust bypass. Child pairing fields disable saved state and the setup window is secure.
+- Live gateway HTTPS acceptance passes 16 stages and cleanup: `.cache/android-server-https-reports/2ae09f7cc3da4c7aaba85013f59c9320.json`. Parent UI, contact delivery/recovery, child shortcut UI, request recovery and watch lifecycle are covered. Actual watch expiry passes at 600807 ms (report d1da1d46760e4a288dbb796e12700523).
+- IPv4 non-loopback VPN TCP passes selected UID block/resume and management UID reachability. Earlier baseline timeouts were resolved with LAN permission; await VPN framework registration before testing sockets. DNS/IPv6/mobile/physical checks remain open. The runner preserves the existing emulator-only debug signing identity.
+- Current six unsigned configured release artifacts pass full lint/configuration/test-code exclusion: `.cache/configured-releases-92e4cbe479b2402689d6dcd89de3619d/configured-builds.json`. The server/tool bundle before parent-push implementation independently verifies at `.cache/server-checkpoint-20261026-7963355f` (8 binaries, 125 source rows, 12 modules, 13 notices). No production signing/deployment.
+- Later LAN-denial runs passed denial/retry but are failed full runs. Initial failures came from disconnected emulator Wi-Fi; after reconnection, UI diagnostics found stale packaged ParentClient origin despite fresh generated BuildConfig. The three stored configured parent release APKs independently pass actual DEX origin inspection; the stale acceptance APK is correctly rejected. Clean acceptance builds, disabled incremental/build cache, packaged origin and package checks now pass in build-only report b3f9614e8664494fbe3cdd380b4d3f73. No install/server/runtime test occurred in that mode. The complete live rerun remains pending after Copilot server integration.
+- Isolated AVD uses ADB server 5038 and serial `127.0.0.1:5581`. Revalidate executable path/arguments before stopping any recorded PID. Physical phone is parent-only: never reset, clear data, provision child Device Owner or run child policy/VPN/Telecom tests on it.
+- Copilot now owns server parent-push foundation work under docs/COPILOT_PARENT_PUSH_TASK.md. Avoid editing its server files. Review is complete; implementation and live delivery are separate gates. The old server bundle predates these edits and must be rebuilt/verified after Copilot finishes.
+- Remaining prerequisites include a separate child Redmi/test SIM, production HTTPS/signing/Firebase configuration, physical call/audio/emergency/dual-SIM acceptance, deployment/restore, 72-hour reliability and family pilot. Do independent local work while waiting; never fabricate those results.
 ## Resume verification: 24 October 2026
 
 Android FCM integration continuation: optional Firebase source directories now
@@ -229,21 +313,21 @@ The main architecture documents are:
 
 ```text
 C:\App Control\
-├── android\                 Android Studio/Gradle project
-│   ├── parent-app\          Parent Android application
-│   ├── child-app\           Device Owner child application
-│   ├── gradle\wrapper\      Pinned Gradle wrapper
-│   ├── build.gradle.kts
-│   ├── settings.gradle.kts
-│   └── local.properties     Local SDK path; ignored by Git
-├── server\                  Self-hosted Go control server
-├── contracts\               Shared versioned protocol contracts
-├── docs\                    Architecture, plan, policies, dependencies
-├── tracking\                Machine-readable phase tracker
-├── scripts\                 Logged-command and progress scripts
-├── logs\build\              Detailed dated command/output text logs
-├── .cache\                  Disposable local build caches and server binary
-└── ANDROID_STUDIO_HANDOFF.md This file
+â”œâ”€â”€ android\                 Android Studio/Gradle project
+â”‚   â”œâ”€â”€ parent-app\          Parent Android application
+â”‚   â”œâ”€â”€ child-app\           Device Owner child application
+â”‚   â”œâ”€â”€ gradle\wrapper\      Pinned Gradle wrapper
+â”‚   â”œâ”€â”€ build.gradle.kts
+â”‚   â”œâ”€â”€ settings.gradle.kts
+â”‚   â””â”€â”€ local.properties     Local SDK path; ignored by Git
+â”œâ”€â”€ server\                  Self-hosted Go control server
+â”œâ”€â”€ contracts\               Shared versioned protocol contracts
+â”œâ”€â”€ docs\                    Architecture, plan, policies, dependencies
+â”œâ”€â”€ tracking\                Machine-readable phase tracker
+â”œâ”€â”€ scripts\                 Logged-command and progress scripts
+â”œâ”€â”€ logs\build\              Detailed dated command/output text logs
+â”œâ”€â”€ .cache\                  Disposable local build caches and server binary
+â””â”€â”€ ANDROID_STUDIO_HANDOFF.md This file
 ```
 
 Do not move only the `android` directory to a separate location. The sibling server, tracker, documentation, scripts, and logs are part of the same product and are required for a complete handoff.

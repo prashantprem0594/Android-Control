@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="device_admin_description">Allows App Control to enforce family device policies.</string>
+    <string name="remote_assistance_accessibility_description">Allows the approved parent account to request a screen snapshot and send touch gestures while this service remains enabled.</string>
 </resources>

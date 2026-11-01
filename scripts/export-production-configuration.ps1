@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory)] [string]$ConfigurationFile,
-    [Parameter(Mandatory)] [string]$OutputDirectory,
-    [switch]$AllowFixture
+    [string]$OutputDirectory,
+    [switch]$AllowFixture,
+    [switch]$ValidateOnly
 )
 # Invoke through run-logged.ps1. Public settings only; no builds or deployment.
 $ErrorActionPreference = 'Stop'
@@ -30,7 +31,10 @@ function Write-JSON([string]$Path,$Object) {
 $inputFile = Get-Item -LiteralPath $ConfigurationFile
 if ($inputFile -isnot [IO.FileInfo] -or $inputFile.Length -gt 16384) { throw 'Public configuration must be a file of at most 16 KiB.' }
 try { $config = [IO.File]::ReadAllText($inputFile.FullName,[Text.UTF8Encoding]::new($false,$true)) | ConvertFrom-Json } catch { throw 'Invalid UTF-8 public configuration JSON.' }
-Require-Fields $config @('serverOrigin','currentPin','backupPin','apkCertificateSHA256','updatePublicKey','updateMinimumSequence','versionCode','versionName','remoteCallsEnabled','firebase')
+$rootFields=@('serverOrigin','currentPin','backupPin','apkCertificateSHA256','updatePublicKey','updateMinimumSequence','versionCode','versionName','remoteCallsEnabled','firebase')
+if($config.PSObject.Properties.Name -ccontains 'parentFirebase'){$rootFields+='parentFirebase'}
+Require-Fields $config $rootFields
+$parentFirebase=if($config.PSObject.Properties.Name -ccontains 'parentFirebase'){$config.parentFirebase}else{$null}
 if ($config.serverOrigin -isnot [string] -or $config.serverOrigin -cnotmatch '^https://[a-z0-9.-]+(?::[0-9]+)?$') { throw 'Use a canonical lowercase HTTPS DNS origin without path, credentials, query or fragment.' }
 $origin = [uri]$config.serverOrigin
 $hostName = $origin.DnsSafeHost
@@ -56,6 +60,7 @@ $properties = [ordered]@{
     appControlUpdateMinimumSequence=$config.updateMinimumSequence; appControlVersionCode=$config.versionCode
     appControlVersionName=$config.versionName; appControlRemoteCallsEnabled=$config.remoteCallsEnabled.ToString().ToLowerInvariant()
     appControlFirebase=($null -ne $config.firebase).ToString().ToLowerInvariant()
+    appControlParentFirebase=($null -ne $parentFirebase).ToString().ToLowerInvariant()
 }
 if ($null -ne $config.firebase) {
     Require-Fields $config.firebase @('applicationId','apiKey','projectId','senderId')
@@ -67,6 +72,22 @@ if ($null -ne $config.firebase) {
     $properties.appControlFirebaseProjectId = $config.firebase.projectId
     $properties.appControlFirebaseSenderId = $config.firebase.senderId
 }
+if($null -ne $parentFirebase){
+    Require-Fields $parentFirebase @('applicationId','apiKey','projectId','senderId')
+    $patterns=@{applicationId='^1:[0-9]+:android:[a-fA-F0-9]+$';apiKey='^[A-Za-z0-9_-]{20,128}$';projectId='^[a-z0-9][a-z0-9-]{4,62}$';senderId='^[0-9]{1,32}$'}
+    foreach($name in $patterns.Keys){if($parentFirebase.$name -isnot [string] -or $parentFirebase.$name -cnotmatch $patterns[$name]){throw 'Invalid public parent Firebase field.'}}
+    if($parentFirebase.applicationId.Split(':')[1] -cne $parentFirebase.senderId){throw 'Parent Firebase sender/application IDs differ.'}
+    if($null -ne $config.firebase -and $parentFirebase.applicationId -ceq $config.firebase.applicationId){throw 'Parent and child require distinct Firebase application IDs.'}
+    $properties.appControlParentFirebaseApplicationId=$parentFirebase.applicationId
+    $properties.appControlParentFirebaseApiKey=$parentFirebase.apiKey
+    $properties.appControlParentFirebaseProjectId=$parentFirebase.projectId
+    $properties.appControlParentFirebaseSenderId=$parentFirebase.senderId
+}
+if ($ValidateOnly) {
+    Write-Output 'Public deployment configuration is structurally valid. Ownership, signing, live messaging and deployment remain unverified.'
+    return
+}
+if ([string]::IsNullOrWhiteSpace($OutputDirectory)) { throw 'OutputDirectory is required unless ValidateOnly is selected.' }
 $output = [IO.Path]::GetFullPath($OutputDirectory)
 if (Test-Path -LiteralPath $output) { throw 'Configuration output directory must be new.' }
 $null = New-Item -ItemType Directory -Path $output
@@ -76,9 +97,10 @@ foreach ($name in $properties.Keys) { $lines += $name + '=' + $properties[$name]
 Write-NewText (Join-Path $output 'gradle.properties') (($lines -join "`n") + "`n")
 Write-JSON (Join-Path $output 'release-arguments.json') ([ordered]@{
     arguments=$arguments
-    tasks=@(':parent-app:assembleRelease',$(if ($null -ne $config.firebase) { ':child-app:assembleFcmRelease' } else { ':child-app:assembleRelease' }))
+    tasks=@($(if($null -ne $parentFirebase){':parent-app:assembleFcmRelease'}else{':parent-app:assembleRelease'}),$(if ($null -ne $config.firebase) { ':child-app:assembleFcmRelease' } else { ':child-app:assembleRelease' }))
 })
 if ($null -ne $config.firebase) { Write-JSON (Join-Path $output 'firebase-public.json') $config.firebase }
+if($null -ne $parentFirebase){Write-JSON (Join-Path $output 'parent-firebase-public.json') $parentFirebase}
 $files = @(Get-ChildItem -LiteralPath $output -File | Sort-Object Name | ForEach-Object { [ordered]@{name=$_.Name;sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()} })
 Write-JSON (Join-Path $output 'configuration.json') ([ordered]@{
     schemaVersion=1; mode=$(if ($AllowFixture) { 'fixture' } else { 'deployment-inputs' }); serverOrigin=$canonical

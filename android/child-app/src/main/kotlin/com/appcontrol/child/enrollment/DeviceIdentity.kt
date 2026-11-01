@@ -53,6 +53,19 @@ class DeviceIdentity {
         })
     }
 
+    fun signRecovery(requestId: String, challenge: String): String {
+        require(requestId.length in 1..128 && requestId.all { it.isLetterOrDigit() || it == '_' || it == '-' })
+        val bytes = Base64.decode(challenge, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        require(bytes.size == 32)
+        val key = store().getKey(alias, null) as java.security.PrivateKey
+        return encode(Signature.getInstance("SHA256withECDSA").run {
+            initSign(key)
+            update("app-control-device-recovery-v1\n$requestId\n".toByteArray(Charsets.UTF_8))
+            update(bytes)
+            sign()
+        })
+    }
+
     private fun encode(bytes: ByteArray) = Base64.encodeToString(bytes,
         Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
 }

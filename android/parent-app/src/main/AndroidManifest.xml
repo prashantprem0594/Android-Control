@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
@@ -11,6 +13,8 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:networkSecurityConfig="@xml/server_trust"
         android:label="App Control Parent"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false">
@@ -24,5 +28,7 @@
         </activity>
         <activity android:name=".UpdateActivity" android:exported="false" android:launchMode="singleTop" />
         <service android:name=".CallWatchService" android:exported="false" android:foregroundServiceType="dataSync" />
+        <service android:name=".push.ParentPushJobService" android:exported="false" android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service android:name=".push.ParentPushExpeditedJobService" android:exported="false" android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>

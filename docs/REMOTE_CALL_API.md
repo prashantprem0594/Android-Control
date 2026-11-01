@@ -118,6 +118,15 @@ that the intent was durably stored. Idempotent retries with the same key and
 same action, call ID, and lifetime return the original command. Reusing a key
 with different input returns `409 idempotency_conflict`.
 
+The parent retains its saved call request identity after transport failures,
+unrecognized responses, `idempotency_conflict` and `remote_calls_disabled`.
+Only bounded, valid `409 call_not_current` or `409 call_state_conflict` responses
+release the exact matching pending record. Those errors occur after checking
+for an existing command with the same request key, so they confirm that this
+request was not queued. A disabled rollout is checked before replay lookup and
+does not provide that guarantee. After a definitive rejection, the parent asks
+the user to refresh call state before choosing another action.
+
 ## Child: fetch and acknowledge
 
 The enrolled child uses its signed device session:

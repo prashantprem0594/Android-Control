@@ -18,7 +18,7 @@ func TestStatusIsServerTimedScopedAndRevocable(t *testing.T) {
 		t.Fatal("unreported status fabricated capabilities")
 	}
 	token := session(t, db, "device", "S", now)
-	capabilities := Capabilities{AndroidAPI: 37, DeviceOwner: true, ExactAlarms: true}
+	capabilities := Capabilities{AndroidAPI: 37, DeviceOwner: true, ExactAlarms: true, NetworkConnected: true, WiFiConnected: true}
 	if err := s.ReportStatus(ctx, token, capabilities); err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +38,7 @@ func TestStatusIsServerTimedScopedAndRevocable(t *testing.T) {
 	if err != nil || !updated.ReceivedAt.Equal(now) || updated.Capabilities.ExactAlarms {
 		t.Fatal("permission loss or last contact not updated")
 	}
-	if err := s.ReportStatus(ctx, token, Capabilities{AndroidAPI: 32}); !errors.Is(err, ErrInvalid) {
+	if err := s.ReportStatus(ctx, token, Capabilities{AndroidAPI: 20}); !errors.Is(err, ErrInvalid) {
 		t.Fatal("invalid Android API accepted")
 	}
 	if err := s.ReportStatus(ctx, "invalid", capabilities); !errors.Is(err, ErrUnauthorized) {

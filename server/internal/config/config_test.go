@@ -31,12 +31,13 @@ func TestLoadDefaults(t *testing.T) {
 
 func TestLoadOverrides(t *testing.T) {
 	values := map[string]string{
-		"APP_CONTROL_HTTP_ADDRESS":         "127.0.0.1:9090",
-		"APP_CONTROL_SHUTDOWN_TIMEOUT":     "3s",
-		"APP_CONTROL_MAX_HEADER_BYTES":     "4096",
-		"APP_CONTROL_READ_HEADER_TIMEOUT":  "2s",
-		"APP_CONTROL_DATABASE_PATH":        "data/test.db",
-		"APP_CONTROL_REMOTE_CALLS_ENABLED": "true",
+		"APP_CONTROL_HTTP_ADDRESS":           "127.0.0.1:9090",
+		"APP_CONTROL_SHUTDOWN_TIMEOUT":       "3s",
+		"APP_CONTROL_MAX_HEADER_BYTES":       "4096",
+		"APP_CONTROL_READ_HEADER_TIMEOUT":    "2s",
+		"APP_CONTROL_DATABASE_PATH":          "data/test.db",
+		"APP_CONTROL_REMOTE_CALLS_ENABLED":   "true",
+		"APP_CONTROL_RECOVERY_HMAC_KEY_FILE": "private/recovery-key.bin",
 	}
 
 	loaded, err := Load(func(name string) (string, bool) {
@@ -47,7 +48,7 @@ func TestLoadOverrides(t *testing.T) {
 		t.Fatalf("load overrides: %v", err)
 	}
 
-	if loaded.HTTPAddress != "127.0.0.1:9090" || loaded.DatabasePath != "data/test.db" || loaded.ShutdownTimeout != 3*time.Second || loaded.MaxHeaderBytes != 4096 || !loaded.RemoteCallsEnabled {
+	if loaded.HTTPAddress != "127.0.0.1:9090" || loaded.DatabasePath != "data/test.db" || loaded.ShutdownTimeout != 3*time.Second || loaded.MaxHeaderBytes != 4096 || !loaded.RemoteCallsEnabled || loaded.RecoveryHMACKeyPath != "private/recovery-key.bin" {
 		t.Fatalf("overrides were not applied: %+v", loaded)
 	}
 }

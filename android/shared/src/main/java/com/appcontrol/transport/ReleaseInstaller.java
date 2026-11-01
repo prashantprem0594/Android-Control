@@ -37,7 +37,7 @@ public final class ReleaseInstaller {
                 ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_IF_VISIBLE:ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
             options=settings.toBundle();
         }
-        return PendingIntent.getActivity(app,session,intent,PendingIntent.FLAG_CANCEL_CURRENT|PendingIntent.FLAG_MUTABLE,options);
+        return PendingIntent.getActivity(app,session,intent,PendingIntent.FLAG_CANCEL_CURRENT|(Build.VERSION.SDK_INT>=31?PendingIntent.FLAG_MUTABLE:0),options);
     }
     public static int submit(Context context,ReleaseUpdate.Prepared prepared,Class<? extends Activity> activity,BooleanSupplier stopped){
         synchronized(LOCK){
@@ -49,11 +49,12 @@ public final class ReleaseInstaller {
                 JSONObject metadata=checkpoint.verifyAndRemember(prepared.envelope,Instant.now());
                 PackageManager manager=app.getPackageManager();
                 PackageInfo candidate=ReleaseArtifact.inspect(manager,prepared.apk,prepared.envelope,prepared.publicKey,prepared.origin,prepared.certificate,checkpoint.minimumSequence(),app.getPackageName(),Instant.now());
-                ReleaseArtifact.requireUpgrade(manager.getPackageInfo(app.getPackageName(),PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES)),candidate);
+                ReleaseArtifact.requireUpgrade(manager.getPackageInfo(app.getPackageName(),PackageManager.GET_SIGNING_CERTIFICATES),candidate);
                 JSONObject expected=null;JSONArray apps=metadata.getJSONArray("apps");for(int i=0;i<apps.length();i++)if(app.getPackageName().equals(apps.getJSONObject(i).getString("package")))expected=apps.getJSONObject(i);
                 if(expected==null)throw new IllegalArgumentException();long size=expected.getLong("bytes");
                 PackageInstaller.SessionParams params=new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
-                params.setAppPackageName(app.getPackageName());params.setSize(size);params.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED);
+                params.setAppPackageName(app.getPackageName());params.setSize(size);
+                if(Build.VERSION.SDK_INT>=31)params.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_REQUIRED);
                 id=installer.createSession(params);session=installer.openSession(id);
                 String nonce=UUID.randomUUID().toString();
                 if(!state(app).edit().clear().putInt("session",id).putString("nonce",nonce).putLong("version",candidate.getLongVersionCode())
@@ -89,7 +90,7 @@ public final class ReleaseInstaller {
             if(!RESULT_ACTION.equals(intent.getAction())||nonce==null||!nonce.equals(intent.getStringExtra("updateNonce"))||intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID,-1)!=saved.getInt("session",-2))return null;
             int status=intent.getIntExtra(PackageInstaller.EXTRA_STATUS,Integer.MAX_VALUE);
             if(status==PackageInstaller.STATUS_PENDING_USER_ACTION){
-                Intent confirmation=intent.getParcelableExtra(Intent.EXTRA_INTENT,Intent.class);
+                Intent confirmation=Build.VERSION.SDK_INT>=33?intent.getParcelableExtra(Intent.EXTRA_INTENT,Intent.class):intent.getParcelableExtra(Intent.EXTRA_INTENT);
                 if(confirmation!=null)saved.edit().putString("status","confirmation_needed").commit();return confirmation;
             }
             if(status==PackageInstaller.STATUS_SUCCESS)saved.edit().clear().putString("status","updated").commit();
@@ -100,7 +101,7 @@ public final class ReleaseInstaller {
     public static String refresh(Context context){
         try{
             SharedPreferences saved=state(context);if(!saved.contains("nonce"))return saved.getString("status","idle");
-            PackageManager manager=context.getPackageManager();PackageInfo current=manager.getPackageInfo(context.getPackageName(),PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES));
+            PackageManager manager=context.getPackageManager();PackageInfo current=manager.getPackageInfo(context.getPackageName(),PackageManager.GET_SIGNING_CERTIFICATES);
             if(current.getLongVersionCode()>=saved.getLong("version",Long.MAX_VALUE)&&current.signingInfo!=null&&!current.signingInfo.hasMultipleSigners()){
                 android.content.pm.Signature[] signers=current.signingInfo.getApkContentsSigners();
                 if(signers!=null&&signers.length==1&&hex(MessageDigest.getInstance("SHA-256").digest(signers[0].toByteArray())).equals(saved.getString("certificate",null))){saved.edit().clear().putString("status","updated").commit();return "updated";}

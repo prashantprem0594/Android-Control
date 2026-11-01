@@ -108,7 +108,11 @@ func (manifest Manifest) Validate(origin, certificate string, minimumSequence in
 		default:
 			return ErrInvalid
 		}
-		if seen[app.Package] || app.VersionCode < 1 || app.VersionCode > 2100000000 || !versionPattern.MatchString(app.VersionName) || app.MinSDK < 33 || app.TargetSDK < app.MinSDK || app.TargetSDK > 100 || app.Bytes < 1 || app.Bytes > 256*1024*1024 || !hashPattern.MatchString(app.SHA256) || app.SigningCertificateSHA256 != certificate {
+		minimumSDK := 33
+		if name == "child" {
+			minimumSDK = 28
+		}
+		if seen[app.Package] || app.VersionCode < 1 || app.VersionCode > 2100000000 || !versionPattern.MatchString(app.VersionName) || app.MinSDK < minimumSDK || app.TargetSDK < 33 || app.TargetSDK < app.MinSDK || app.TargetSDK > 100 || app.Bytes < 1 || app.Bytes > 256*1024*1024 || !hashPattern.MatchString(app.SHA256) || app.SigningCertificateSHA256 != certificate {
 			return ErrInvalid
 		}
 		if app.URL != origin+"/releases/"+strconv.Itoa(manifest.Sequence)+"/"+name+"-release.apk" {

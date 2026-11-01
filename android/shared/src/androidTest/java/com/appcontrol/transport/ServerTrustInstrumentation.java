@@ -19,10 +19,137 @@ public final class ServerTrustInstrumentation extends Instrumentation {
     }
 
     @Override public void onStart() {
-        if ("contact_cache".equals(arguments.getString("probe"))) {
+        if ("ui_appearance".equals(arguments.getString("probe"))) {
+            Bundle result = UiAppearanceProbe.run(getTargetContext(), this);
+            finish("passed".equals(result.getString("ui_appearance_probe")) ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
+            return;
+        }
+        if ("android_compatibility".equals(arguments.getString("probe"))) {
+            Bundle result = new Bundle();
+            try {
+                result = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.child.Android9CompatibilityProbe")
+                    .getMethod("run", android.content.Context.class, Instrumentation.class).invoke(null, getTargetContext(), this);
+            } catch (Exception | LinkageError failure) { result.putString("android_compatibility_probe", "failed"); }
+            finish("passed".equals(result.getString("android_compatibility_probe")) ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
+            return;
+        }
+        if ("parent_push_queue_death".equals(arguments.getString("probe"))) {
+            Bundle result = new Bundle();
+            try {
+                if (!"com.appcontrol.parent.acceptance".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+                result = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.parent.ParentPushQueueDeathProbe")
+                    .getMethod("run", android.content.Context.class, String.class, Instrumentation.class)
+                    .invoke(null, getTargetContext(), arguments.getString("phase", "verify"), this);
+            } catch (Exception ignored) { result.putString("parent_push_queue_death_probe", "failed"); }
+            String state = result.getString("parent_push_queue_death_probe", "failed");
+            finish(state.equals("prepared") || state.equals("passed") || state.equals("cleaned") ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
+            return;
+        }
+        if ("parent_push_queue".equals(arguments.getString("probe"))) {
+            Bundle result = new Bundle();
+            try {
+                if (!"com.appcontrol.parent.acceptance".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+                result = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.parent.ParentPushQueueProbe")
+                    .getMethod("run", android.content.Context.class, Instrumentation.class).invoke(null, getTargetContext(), this);
+            } catch (Exception ignored) { result.putString("parent_push_queue_probe", "failed"); }
+            finish("passed".equals(result.getString("parent_push_queue_probe")) ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
+            return;
+        }
+        if ("parent_push_https".equals(arguments.getString("probe"))) {
+            Bundle result = new Bundle();
+            try {
+                if (!"com.appcontrol.parent.acceptance".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+                result = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.parent.ParentPushHttpsProbe")
+                    .getMethod("run", android.content.Context.class).invoke(null, getTargetContext());
+            } catch (Exception ignored) { result.putString("server_https_parent_push_api_probe", "failed"); }
+            finish("passed".equals(result.getString("server_https_parent_push_api_probe")) ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
+            return;
+        }
+        if ("local_network_setup".equals(arguments.getString("probe"))) {
+            Bundle result = LocalNetworkSetupProbe.run(getTargetContext(), this, "true".equals(arguments.getString("deny_lan_once")));
+            finish("passed".equals(result.getString("local_network_setup_probe")) ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
+            return;
+        }
+        if ("child_contact_ui".equals(arguments.getString("probe"))) {
+            Bundle uiResult = new Bundle();
+            try {
+                if (!"com.appcontrol.child.acceptance".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+                uiResult = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.child.ChildContactUiProbe")
+                    .getMethod("run", android.content.Context.class, Instrumentation.class)
+                    .invoke(null, getTargetContext(), this);
+            } catch (Exception ignored) { uiResult.putString("child_contact_ui_probe", "failed"); }
+            finish("passed".equals(uiResult.getString("child_contact_ui_probe")) ? Activity.RESULT_OK : Activity.RESULT_CANCELED, uiResult);
+            return;
+        }
+        if ("parent_ui_https".equals(arguments.getString("probe"))) {
+            Bundle uiResult = new Bundle();
+            try {
+                if (!"com.appcontrol.parent.acceptance".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+                uiResult = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.parent.ParentUiHttpsProbe")
+                    .getMethod("run", android.content.Context.class, Instrumentation.class, Boolean.TYPE)
+                    .invoke(null, getTargetContext(), this, "true".equals(arguments.getString("observe_call_watch_window")));
+            } catch (Exception ignored) { uiResult.putString("server_https_parent_ui_probe", "failed"); }
+            finish("passed".equals(uiResult.getString("server_https_parent_ui_probe")) ? Activity.RESULT_OK : Activity.RESULT_CANCELED, uiResult);
+            return;
+        }
+        if ("network_pause".equals(arguments.getString("probe"))) {
+            Bundle networkResult = new Bundle();
+            try {
+                if (!"com.appcontrol.child".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+                networkResult = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.child.InternetPauseNetworkProbe")
+                    .getMethod("run", android.content.Context.class, Instrumentation.class, String.class)
+                    .invoke(null, getTargetContext(), this, arguments.getString("phase", "run"));
+            } catch (Exception ignored) { networkResult.putString("network_pause_probe", "failed"); }
+            String state = networkResult.getString("network_pause_probe", "failed");
+            finish(state.equals("ready") || state.equals("passed") || state.equals("cleaned") ? Activity.RESULT_OK : Activity.RESULT_CANCELED, networkResult);
+            return;
+        }
+        if ("telecom_audio".equals(arguments.getString("probe"))) {
+            Bundle audioResult = new Bundle();
+            try {
+                if (!"com.appcontrol.child".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+                audioResult = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.child.TelecomAudioProbe")
+                    .getMethod("run", android.content.Context.class, Instrumentation.class, String.class)
+                    .invoke(null, getTargetContext(), this, arguments.getString("phase", "run"));
+            } catch (Exception ignored) { audioResult.putString("telecom_audio_probe", "failed"); }
+            String state = audioResult.getString("telecom_audio_probe", "failed");
+            finish(state.equals("prepared") || state.equals("passed") || state.equals("cleaned") ? Activity.RESULT_OK : Activity.RESULT_CANCELED, audioResult);
+            return;
+        }
+        if ("telecom_recovery".equals(arguments.getString("probe"))) {
+            Bundle recoveryResult = new Bundle();
+            try {
+                if (!"com.appcontrol.child".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+                recoveryResult = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.child.TelecomRecoveryProbe")
+                    .getMethod("run", android.content.Context.class, Instrumentation.class, String.class)
+                    .invoke(null, getTargetContext(), this, arguments.getString("phase", "recover"));
+            } catch (Exception ignored) { recoveryResult.putString("telecom_recovery_probe", "failed"); }
+            String state = recoveryResult.getString("telecom_recovery_probe", "failed");
+            finish(state.equals("prepared") || state.equals("armed") || state.equals("passed") || state.equals("cleaned") ? Activity.RESULT_OK : Activity.RESULT_CANCELED, recoveryResult);
+            return;
+        }
+        if ("release_persistence".equals(arguments.getString("probe"))) {
+            Bundle replayResult = ReleasePersistenceProbe.run(getTargetContext(), arguments.getString("phase", "restart"));
+            String state = replayResult.getString("release_persistence_probe", "failed");
+            finish(state.equals("prepared") || state.equals("passed") || state.equals("cleaned") ? Activity.RESULT_OK : Activity.RESULT_CANCELED, replayResult);
+            return;
+        }
+        if ("contact_persistence".equals(arguments.getString("probe"))) {
             Bundle contactResult = new Bundle();
             try {
                 if (!"com.appcontrol.child".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+                contactResult = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.child.CallContactPersistenceProbe")
+                    .getMethod("run", android.content.Context.class, String.class)
+                    .invoke(null, getTargetContext(), arguments.getString("phase", "restart"));
+            } catch (Exception ignored) { contactResult.putString("contact_persistence_probe", "failed"); }
+            String state = contactResult.getString("contact_persistence_probe", "failed");
+            finish(state.equals("prepared") || state.equals("passed") || state.equals("cleaned") ? Activity.RESULT_OK : Activity.RESULT_CANCELED, contactResult);
+            return;
+        }
+        if ("contact_cache".equals(arguments.getString("probe"))) {
+            Bundle contactResult = new Bundle();
+            try {
+                if (!isTargetPackage("com.appcontrol.child")) throw new IllegalArgumentException();
                 contactResult = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.child.CallContactCacheProbe")
                     .getMethod("run", android.content.Context.class).invoke(null, getTargetContext());
             } catch (Exception ignored) { contactResult.putString("contact_cache_probe", "failed"); }
@@ -78,7 +205,7 @@ public final class ServerTrustInstrumentation extends Instrumentation {
         if ("parent_client".equals(arguments.getString("probe"))) {
             Bundle parentResult = new Bundle();
             try {
-                if (!"com.appcontrol.parent".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+                if (!isTargetPackage("com.appcontrol.parent")) throw new IllegalArgumentException();
                 parentResult = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.parent.ParentClientProbe")
                     .getMethod("run", android.content.Context.class).invoke(null, getTargetContext());
             } catch (Exception failure) {
@@ -90,7 +217,7 @@ public final class ServerTrustInstrumentation extends Instrumentation {
         if ("parent_session".equals(arguments.getString("probe"))) {
             Bundle parentResult = new Bundle();
             try {
-                if (!"com.appcontrol.parent".equals(getTargetContext().getPackageName())) throw new IllegalArgumentException();
+                if (!isTargetPackage("com.appcontrol.parent")) throw new IllegalArgumentException();
                 parentResult = (Bundle) getContext().getClassLoader().loadClass("com.appcontrol.parent.ParentSessionProbe")
                     .getMethod("run", android.content.Context.class).invoke(null, getTargetContext());
             } catch (Exception failure) {
@@ -234,5 +361,10 @@ public final class ServerTrustInstrumentation extends Instrumentation {
         result.putString("observation", outcome);
         result.putString("stream", "Server trust probe: " + (passed ? "passed" : "failed") + " (" + outcome + ")\n");
         finish(passed ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
+    }
+
+    private boolean isTargetPackage(String basePackage) {
+        String actualPackage = getTargetContext().getPackageName();
+        return basePackage.equals(actualPackage) || (basePackage + ".acceptance").equals(actualPackage);
     }
 }

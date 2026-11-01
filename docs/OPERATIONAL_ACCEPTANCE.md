@@ -17,6 +17,30 @@ passwords, tokens, private keys, phone numbers or real call content.
 | App update | Build/sign with the existing application identity and compiled server trust. Stage on an acceptance device; retain enrollment/key, Device Owner, cached policy, command journal and call role. Verify boot and interrupted-update recovery. | Isolated random-key signing checks and debug-signed Android 37 version-1-to-2 upgrade preserve Keystore identity, Device Owner and cached policy. Full release lint/reproducibility, production signer and enrolled-device continuity remain pending. |
 | Rollback | Choose an approved compatible database/app rollback path, preserving identity and policy schema compatibility. Validate before broad rollout; do not use uninstall as rollback or silently enable downgrade/debug access. | Procedure design and device exercise pending. |
 
+## Parent push after server recovery
+
+Recover the parent routing-token encryption key separately from the encrypted
+database backup. The database backup key and parent routing key have different
+purposes; recovering only the database backup does not decrypt the saved push
+registrations. Keep private key files outside evidence archives and logs. If the
+original routing key is unavailable, restore authenticated polling first and
+require parent installations to register current tokens under the replacement
+key before enabling the sender. Never treat old ciphertext as a usable token.
+
+The local recovery exercise in
+`server/internal/parentpush/recovery_test.go` restores an actual encrypted SQLite
+backup into a new directory after closing the source database. It checks the
+original delivery identity and expiry, expired-lease retry with the retained
+routing key, wrong-key refusal, refusal of a pre-outage lease, and suppression
+after the 30-second call freshness window. It also runs operator password
+recovery against the restored database and checks removal of the old parent
+registration, cancellation of its delivery, denial of its event feed, preserved
+active child enrollment and the immutable password-reset audit event.
+
+This fixture exercise does not contact Firebase or establish clean deployed-host,
+production-key custody, physical-phone reconnection or production restore
+acceptance. Those observations remain required for P7-003 and P7-005.
+
 ## Pilot record
 
 The 72-hour reliability measurement and supervised one-to-two-week family pilot

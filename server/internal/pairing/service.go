@@ -37,6 +37,7 @@ type Options struct {
 	PairingCodeLifetime  time.Duration
 	EnrollmentLifetime   time.Duration
 	MaxVerificationTries int
+	RecoveryHMACKey      []byte
 }
 
 type Service struct {
@@ -46,6 +47,7 @@ type Service struct {
 	pairingCodeLifetime  time.Duration
 	enrollmentLifetime   time.Duration
 	maxVerificationTries int
+	recoveryHMACKey      []byte
 }
 
 type PairingCode struct {
@@ -93,11 +95,15 @@ func NewService(database *sql.DB, options Options) (*Service, error) {
 	if options.PairingCodeLifetime <= 0 || options.EnrollmentLifetime <= 0 || options.MaxVerificationTries < 1 {
 		return nil, fmt.Errorf("pairing lifetimes and attempt limit must be positive")
 	}
+	if len(options.RecoveryHMACKey) != 0 && len(options.RecoveryHMACKey) != 32 {
+		return nil, fmt.Errorf("recovery HMAC key must contain exactly 32 bytes")
+	}
 	return &Service{
 		database: database, now: options.Now, random: options.Random,
 		pairingCodeLifetime:  options.PairingCodeLifetime,
 		enrollmentLifetime:   options.EnrollmentLifetime,
 		maxVerificationTries: options.MaxVerificationTries,
+		recoveryHMACKey:      append([]byte(nil), options.RecoveryHMACKey...),
 	}, nil
 }
 

@@ -25,20 +25,20 @@ public final class TelecomFixtureProbe {
     private static String uiObservation = "none";
     private static final Uri CONTROL = Uri.parse("content://org.example.appcontroltelecomfixture.control");
     private static void require(boolean value) { if (!value) throw new IllegalStateException("Synthetic Telecom invariant failed"); }
-    private static String provider(Context context, String method) {
+    static String provider(Context context, String method) {
         Bundle result = context.getContentResolver().call(CONTROL, method, null, null);
         require(result != null); return result.getString("result", "failed");
     }
-    private static <T> T main(Instrumentation instrumentation, Callable<T> action) throws Exception {
+    static <T> T main(Instrumentation instrumentation, Callable<T> action) throws Exception {
         AtomicReference<T> value = new AtomicReference<>(); AtomicReference<Exception> error = new AtomicReference<>();
         instrumentation.runOnMainSync(() -> { try { value.set(action.call()); } catch (Exception failure) { error.set(failure); } });
         if (error.get() != null) throw error.get(); return value.get();
     }
-    private static final class Snapshot {
+    static final class Snapshot {
         final String id; final CallActionGate.State state;
         Snapshot(String id, CallActionGate.State state) { this.id = id; this.state = state; }
     }
-    private static Snapshot snapshot(Instrumentation instrumentation) throws Exception {
+    static Snapshot snapshot(Instrumentation instrumentation) throws Exception {
         return main(instrumentation, () -> {
             List<CallRegistry.Entry> calls = CallRegistry.INSTANCE.all(); require(calls.size() <= 1);
             if (calls.isEmpty()) return null;
@@ -46,7 +46,7 @@ public final class TelecomFixtureProbe {
             CallRegistry.Entry entry = calls.get(0); return new Snapshot(entry.getId(), CallRegistry.INSTANCE.state(entry.getCall()));
         });
     }
-    private static Snapshot await(Instrumentation instrumentation, CallActionGate.State state, String id) throws Exception {
+    static Snapshot await(Instrumentation instrumentation, CallActionGate.State state, String id) throws Exception {
         long deadline = SystemClock.elapsedRealtime() + 15000;
         while (SystemClock.elapsedRealtime() < deadline) {
             Snapshot current = snapshot(instrumentation);
@@ -55,7 +55,7 @@ public final class TelecomFixtureProbe {
         }
         throw new IllegalStateException("Synthetic Telecom state timeout");
     }
-    private static void removed(Context context, Instrumentation instrumentation) throws Exception {
+    static void removed(Context context, Instrumentation instrumentation) throws Exception {
         long deadline = SystemClock.elapsedRealtime() + 15000;
         while (SystemClock.elapsedRealtime() < deadline) {
             if (snapshot(instrumentation) == null && "disconnected".equals(provider(context, "state"))) return;
@@ -63,11 +63,11 @@ public final class TelecomFixtureProbe {
         }
         throw new IllegalStateException("Synthetic call removal timeout");
     }
-    private static void open(Context context, Instrumentation instrumentation, String id) throws Exception {
+    static void open(Context context, Instrumentation instrumentation, String id) throws Exception {
         main(instrumentation, () -> { context.startActivity(new Intent(context, CallActivity.class).putExtra("callId", id).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); return null; });
         instrumentation.waitForIdleSync();
     }
-    private static void control(Instrumentation instrumentation, String label, boolean click) throws Exception {
+    static void control(Instrumentation instrumentation, String label, boolean click) throws Exception {
         long deadline = SystemClock.elapsedRealtime() + 10000;
         while (SystemClock.elapsedRealtime() < deadline) {
             AccessibilityNodeInfo root = instrumentation.getUiAutomation().getRootInActiveWindow();

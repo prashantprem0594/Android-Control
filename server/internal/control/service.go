@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -74,6 +75,85 @@ func (s *Service) QueueLockWithKey(ctx context.Context, parentID, deviceID strin
 	return s.queueCommand(ctx, parentID, deviceID, "LOCK_DEVICE", json.RawMessage(`{}`), ttlSeconds, 3600, key)
 }
 
+func (s *Service) QueueOpenApp(ctx context.Context, parentID, deviceID, pkg string, ttlSeconds int, key string) (Command, error) {
+	if len(pkg) > 255 || !packageName.MatchString(pkg) {
+		return Command{}, ErrInvalid
+	}
+	payload, err := json.Marshal(struct {
+		PackageName string `json:"packageName"`
+	}{pkg})
+	if err != nil {
+		return Command{}, err
+	}
+	return s.queueCommand(ctx, parentID, deviceID, "OPEN_APP", payload, ttlSeconds, 3600, key)
+}
+
+func (s *Service) QueueOpenSettings(ctx context.Context, parentID, deviceID string, ttlSeconds int, key string) (Command, error) {
+	return s.queueCommand(ctx, parentID, deviceID, "OPEN_SETTINGS", json.RawMessage(`{}`), ttlSeconds, 3600, key)
+}
+
+// QueueRemoteScreenshot requests one consented accessibility screenshot. It never
+// enables the accessibility service or bypasses Android's user-controlled setting.
+func (s *Service) QueueRemoteScreenshot(ctx context.Context, parentID, deviceID string, ttlSeconds int, key string) (Command, error) {
+	return s.queueCommand(ctx, parentID, deviceID, "REMOTE_SCREENSHOT", json.RawMessage(`{}`), ttlSeconds, 120, key)
+}
+
+func (s *Service) QueueRemoteTap(ctx context.Context, parentID, deviceID string, x, y, ttlSeconds int, key string) (Command, error) {
+	return s.queueRemoteGesture(ctx, parentID, deviceID, map[string]any{"action": "tap", "x": x, "y": y}, ttlSeconds, key)
+}
+
+func (s *Service) QueueRemoteSwipe(ctx context.Context, parentID, deviceID string, x, y, endX, endY, durationMillis, ttlSeconds int, key string) (Command, error) {
+	return s.queueRemoteGesture(ctx, parentID, deviceID, map[string]any{"action": "swipe", "x": x, "y": y, "endX": endX, "endY": endY, "durationMillis": durationMillis}, ttlSeconds, key)
+}
+
+func (s *Service) QueueRemoteLongPress(ctx context.Context, parentID, deviceID string, x, y, durationMillis, ttlSeconds int, key string) (Command, error) {
+	return s.queueRemoteGesture(ctx, parentID, deviceID, map[string]any{"action": "long_press", "x": x, "y": y, "durationMillis": durationMillis}, ttlSeconds, key)
+}
+
+func (s *Service) QueueRemoteGlobal(ctx context.Context, parentID, deviceID, action string, ttlSeconds int, key string) (Command, error) {
+	return s.queueRemoteGesture(ctx, parentID, deviceID, map[string]any{"action": action}, ttlSeconds, key)
+}
+
+func (s *Service) queueRemoteGesture(ctx context.Context, parentID, deviceID string, gesture map[string]any, ttlSeconds int, key string) (Command, error) {
+	action, ok := gesture["action"].(string)
+	if !ok {
+		return Command{}, ErrInvalid
+	}
+	coordinate := func(name string) bool {
+		value, present := gesture[name].(int)
+		return present && value >= 0 && value <= 10000
+	}
+	duration := func(minimum int) bool {
+		value, present := gesture["durationMillis"].(int)
+		return present && value >= minimum && value <= 2000
+	}
+	switch action {
+	case "tap":
+		if len(gesture) != 3 || !coordinate("x") || !coordinate("y") {
+			return Command{}, ErrInvalid
+		}
+	case "swipe":
+		if len(gesture) != 6 || !coordinate("x") || !coordinate("y") || !coordinate("endX") || !coordinate("endY") || !duration(50) {
+			return Command{}, ErrInvalid
+		}
+	case "long_press":
+		if len(gesture) != 4 || !coordinate("x") || !coordinate("y") || !duration(300) {
+			return Command{}, ErrInvalid
+		}
+	case "back", "home", "recents":
+		if len(gesture) != 1 {
+			return Command{}, ErrInvalid
+		}
+	default:
+		return Command{}, ErrInvalid
+	}
+	payload, err := json.Marshal(gesture)
+	if err != nil {
+		return Command{}, err
+	}
+	return s.queueCommand(ctx, parentID, deviceID, "REMOTE_GESTURE", payload, ttlSeconds, 30, key)
+}
+
 func (s *Service) QueueCallActionWithKey(ctx context.Context, parentID, deviceID, action, callID string, ttlSeconds int, key string) (Command, error) {
 	if !callIDPattern.MatchString(callID) {
 		return Command{}, ErrInvalid
@@ -119,7 +199,7 @@ func (s *Service) queueCommand(ctx context.Context, parentID, deviceID, commandT
 		if err := owned(ctx, tx, parentID, deviceID); err != nil {
 			return err
 		}
-		if commandType != "LOCK_DEVICE" && !s.remoteCallsEnabled {
+		if (commandType == "ANSWER_CALL" || commandType == "REJECT_CALL" || commandType == "END_CALL") && !s.remoteCallsEnabled {
 			return ErrRemoteCallDisabled
 		}
 		if key != "" {
@@ -146,7 +226,51 @@ func (s *Service) queueCommand(ctx context.Context, parentID, deviceID, commandT
 				return err
 			}
 		}
-		if commandType != "LOCK_DEVICE" {
+		if commandType == "OPEN_APP" {
+			var target struct {
+				PackageName string `json:"packageName"`
+			}
+			if err := json.Unmarshal(payload, &target); err != nil || target.PackageName == "" {
+				return ErrInvalid
+			}
+			inventory, exists, err := readInventory(ctx, tx, deviceID)
+			if err != nil {
+				return err
+			}
+			if !exists {
+				return ErrInvalid
+			}
+			found := false
+			for _, app := range inventory.Apps {
+				if app.PackageName == target.PackageName && app.Launchable {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return ErrInvalid
+			}
+		} else if commandType == "OPEN_SETTINGS" {
+			if string(payload) != `{}` {
+				return ErrInvalid
+			}
+		} else if commandType == "REMOTE_SCREENSHOT" {
+			if string(payload) != `{}` {
+				return ErrInvalid
+			}
+		} else if commandType == "REMOTE_GESTURE" {
+			var gesture struct {
+				Action         string `json:"action"`
+				X              int    `json:"x"`
+				Y              int    `json:"y"`
+				EndX           int    `json:"endX"`
+				EndY           int    `json:"endY"`
+				DurationMillis int    `json:"durationMillis"`
+			}
+			if err := json.Unmarshal(payload, &gesture); err != nil || !validRemoteGesture(gesture.Action, gesture.X, gesture.Y, gesture.EndX, gesture.EndY, gesture.DurationMillis, payload) {
+				return ErrInvalid
+			}
+		} else if commandType == "ANSWER_CALL" || commandType == "REJECT_CALL" || commandType == "END_CALL" {
 			var action struct {
 				CallID string `json:"callId"`
 			}
@@ -156,6 +280,12 @@ func (s *Service) queueCommand(ctx context.Context, parentID, deviceID, commandT
 			if err := s.requireCurrentCall(ctx, tx, deviceID, action.CallID, commandType, now); err != nil {
 				return err
 			}
+		} else if commandType == "LOCK_DEVICE" {
+			if string(payload) != `{}` {
+				return ErrInvalid
+			}
+		} else {
+			return ErrInvalid
 		}
 		var requestKey any
 		if key != "" {
@@ -169,6 +299,99 @@ func (s *Service) queueCommand(ctx context.Context, parentID, deviceID, commandT
 		s.notify(ctx, deviceID)
 	}
 	return command, err
+}
+
+func validRemoteGesture(action string, x, y, endX, endY, duration int, payload []byte) bool {
+	var raw map[string]json.RawMessage
+	if json.Unmarshal(payload, &raw) != nil {
+		return false
+	}
+	coordinate := func(value int) bool { return value >= 0 && value <= 10000 }
+	switch action {
+	case "tap":
+		return len(raw) == 3 && coordinate(x) && coordinate(y)
+	case "swipe":
+		return len(raw) == 6 && coordinate(x) && coordinate(y) && coordinate(endX) && coordinate(endY) && duration >= 50 && duration <= 2000
+	case "long_press":
+		return len(raw) == 4 && coordinate(x) && coordinate(y) && duration >= 300 && duration <= 2000
+	case "back", "home", "recents":
+		return len(raw) == 1
+	default:
+		return false
+	}
+}
+
+type RemoteScreen struct {
+	ImageBase64 string    `json:"imageBase64"`
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
+// SaveRemoteScreen accepts a bounded JPEG encoded as canonical base64 from the
+// enrolled device that owns the screenshot command.
+func (s *Service) SaveRemoteScreen(ctx context.Context, token, commandID, imageBase64 string) error {
+	if len(imageBase64) < 4 || len(imageBase64) > 524288 {
+		return ErrInvalid
+	}
+	image, err := base64.StdEncoding.DecodeString(imageBase64)
+	if err != nil || len(image) < 16 || len(image) > 384*1024 || image[0] != 0xff || image[1] != 0xd8 {
+		return ErrInvalid
+	}
+	if base64.StdEncoding.EncodeToString(image) != imageBase64 {
+		return ErrInvalid
+	}
+	return storage.WithinTransaction(ctx, s.db, func(tx *sql.Tx) error {
+		now := s.now().UTC()
+		deviceID, err := deviceAuthorization(ctx, tx, token, now)
+		if err != nil {
+			return err
+		}
+		if err := expireCommands(ctx, tx, deviceID, now); err != nil {
+			return err
+		}
+		var status, commandType string
+		err = tx.QueryRowContext(ctx, "SELECT status,type FROM commands WHERE id=? AND device_id=?", commandID, deviceID).Scan(&status, &commandType)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		if status != "delivered" || commandType != "REMOTE_SCREENSHOT" {
+			return ErrCommandState
+		}
+		_, err = tx.ExecContext(ctx, "INSERT INTO remote_assistance_screens(command_id,image_base64,created_at) VALUES(?,?,?) ON CONFLICT(command_id) DO UPDATE SET image_base64=excluded.image_base64,created_at=excluded.created_at", commandID, imageBase64, now.Format(time.RFC3339Nano))
+		if err != nil {
+			return err
+		}
+		// Remote assistance is interactive; retaining every captured screen would
+		// let the database grow without bound. Keep the most recent 20 per device.
+		_, err = tx.ExecContext(ctx, `DELETE FROM remote_assistance_screens WHERE command_id IN (
+ SELECT r.command_id FROM remote_assistance_screens r JOIN commands c ON c.id=r.command_id
+ WHERE c.device_id=? ORDER BY r.created_at DESC, r.command_id DESC LIMIT -1 OFFSET 20)`, deviceID)
+		return err
+	})
+}
+
+func (s *Service) RemoteScreen(ctx context.Context, parentID, deviceID, commandID string) (RemoteScreen, error) {
+	var screen RemoteScreen
+	err := storage.WithinTransaction(ctx, s.db, func(tx *sql.Tx) error {
+		if err := owned(ctx, tx, parentID, deviceID); err != nil {
+			return err
+		}
+		var created string
+		err := tx.QueryRowContext(ctx, `SELECT r.image_base64,r.created_at FROM remote_assistance_screens r
+ JOIN commands c ON c.id=r.command_id WHERE r.command_id=? AND c.device_id=? AND c.parent_account_id=? AND c.type='REMOTE_SCREENSHOT'`,
+			commandID, deviceID, parentID).Scan(&screen.ImageBase64, &created)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		if err != nil {
+			return err
+		}
+		screen.CreatedAt, err = time.Parse(time.RFC3339Nano, created)
+		return err
+	})
+	return screen, err
 }
 
 type Policy struct {

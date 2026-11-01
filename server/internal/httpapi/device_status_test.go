@@ -62,15 +62,15 @@ func TestDeviceStatusHTTPRejectsMissingAndCrossParentInputs(t *testing.T) {
 	if json.Unmarshal(call("GET", "/v1/devices/device/status", "owner", "", 200), &initial) != nil || initial.ServerTime.IsZero() || initial.ReceivedAt != nil || initial.Capabilities != nil {
 		t.Fatal("unreported status fabricated capabilities or omitted server clock")
 	}
-	valid := `{"androidApi":37,"deviceOwner":true,"dialerRole":false,"vpnConsent":false,"exactAlarms":true}`
+	valid := `{"androidApi":37,"deviceOwner":true,"dialerRole":false,"vpnConsent":false,"exactAlarms":true,"networkConnected":true,"wifiConnected":true,"cellularConnected":false,"vpnActive":false}`
 	call("POST", "/v1/device/status", "", valid, 401)
 	call("POST", "/v1/device/status", "owner", valid, 401)
-	for _, body := range []string{`null`, `{}`, `{"androidApi":37}`, strings.Replace(valid, `"dialerRole":false`, `"dialerRole":null`, 1), strings.Replace(valid, `37`, `101`, 1), strings.Replace(valid, `37`, `32`, 1), strings.TrimSuffix(valid, "}") + `,"parentId":"owner"}`, valid + valid} {
+	for _, body := range []string{`null`, `{}`, `{"androidApi":37}`, strings.Replace(valid, `"dialerRole":false`, `"dialerRole":null`, 1), strings.Replace(valid, `37`, `101`, 1), strings.Replace(valid, `37`, `20`, 1), strings.TrimSuffix(valid, "}") + `,"parentId":"owner"}`, valid + valid} {
 		call("POST", "/v1/device/status", token, body, 400)
 	}
 	call("POST", "/v1/device/status", token, valid, 200)
 	var status control.DeviceStatus
-	if err := json.Unmarshal(call("GET", "/v1/devices/device/status", "owner", "", 200), &status); err != nil || status.ReceivedAt == nil || status.Capabilities == nil || status.Capabilities.AndroidAPI != 37 {
+	if err := json.Unmarshal(call("GET", "/v1/devices/device/status", "owner", "", 200), &status); err != nil || status.ReceivedAt == nil || status.Capabilities == nil || status.Capabilities.AndroidAPI != 37 || !status.Capabilities.NetworkConnected || !status.Capabilities.WiFiConnected || status.Capabilities.CellularConnected || status.Capabilities.VPNActive {
 		t.Fatal("missing reported status")
 	}
 	callID := "a3d7a190-8503-4bf4-9c12-123456789abc"

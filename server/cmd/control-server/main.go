@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"appcontrol/server/internal/audit"
 	"appcontrol/server/internal/auth"
@@ -15,16 +16,22 @@ import (
 	"appcontrol/server/internal/control"
 	"appcontrol/server/internal/httpapi"
 	"appcontrol/server/internal/pairing"
+	"appcontrol/server/internal/parentpush"
 	"appcontrol/server/internal/serve"
 	"appcontrol/server/internal/storage"
+	"sync"
 )
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	if err := run(logger); err != nil {
-		logger.Error("control server stopped with error", "error", err)
+		logServerFailure(logger, err)
 		os.Exit(1)
 	}
+}
+
+func logServerFailure(logger *slog.Logger, _ error) {
+	logger.Error("control server stopped with error", "failure", "internal")
 }
 
 func run(logger *slog.Logger) error {
@@ -49,7 +56,13 @@ func run(logger *slog.Logger) error {
 		return fmt.Errorf("initialize authentication: %w", err)
 	}
 
-	pairingService, err := pairing.NewService(database, pairing.Options{})
+	recoveryKey, err := loadRecoveryHMACKey(settings.RecoveryHMACKeyPath)
+	if err != nil {
+		_ = listener.Close()
+		return fmt.Errorf("initialize recovery protection: %w", err)
+	}
+	defer clear(recoveryKey)
+	pairingService, err := pairing.NewService(database, pairing.Options{RecoveryHMACKey: recoveryKey})
 	if err != nil {
 		_ = listener.Close()
 		return fmt.Errorf("initialize pairing: %w", err)
@@ -61,6 +74,24 @@ func run(logger *slog.Logger) error {
 	if err != nil {
 		_ = listener.Close()
 		return fmt.Errorf("initialize wake-up provider: %w", err)
+	}
+	parentPushStore, err := configureParentPush(database, settings)
+	if err != nil {
+		_ = listener.Close()
+		return fmt.Errorf("initialize parent push registry: %w", err)
+	}
+	parentPushSender, err := configureParentPushSender(settings)
+	if err != nil {
+		_ = listener.Close()
+		return fmt.Errorf("initialize parent push sender: %w", err)
+	}
+	var parentPushWorker *parentpush.Worker
+	if parentPushSender != nil {
+		parentPushWorker, err = parentpush.NewWorker(parentPushStore, parentPushSender, logger)
+		if err != nil {
+			_ = listener.Close()
+			return fmt.Errorf("initialize parent push worker: %w", err)
+		}
 	}
 	releaseDocument, err := configureRelease(settings)
 	if err != nil {
@@ -78,10 +109,11 @@ func run(logger *slog.Logger) error {
 	controlService := control.NewServiceWithWakeup(database, provider)
 	controlService.SetRemoteCallsEnabled(settings.RemoteCallsEnabled)
 	handler := httpapi.NewHandler(httpapi.Options{
-		Release:      releaseDocument,
-		WakeupTokens: tokenStore,
-		Guard:        guard,
-		Control:      controlService,
+		Release:            releaseDocument,
+		WakeupTokens:       tokenStore,
+		ParentWakeupTokens: parentPushStore,
+		Guard:              guard,
+		Control:            controlService,
 		Audit: func(ctx context.Context, parentID string, after int64, limit int) ([]audit.Event, error) {
 			return audit.List(ctx, database, parentID, after, limit)
 		},
@@ -90,5 +122,57 @@ func run(logger *slog.Logger) error {
 		Auth:    authService,
 		Pairing: pairingService,
 	})
-	return serve.Run(shutdownContext, listener, handler, logger, settings)
+	workerContext, cancelWorkers := context.WithCancel(shutdownContext)
+	var workers sync.WaitGroup
+	workers.Add(1)
+	go func() {
+		defer workers.Done()
+		_ = parentpush.RunMaintenance(workerContext, database, logger)
+	}()
+	workers.Add(1)
+	go func() {
+		defer workers.Done()
+		// Retention is enforced on reads/writes as well, but this worker keeps the
+		// database clear even while no device or parent is connected.
+		ticker := time.NewTicker(time.Minute)
+		defer ticker.Stop()
+		for {
+			if err := controlService.PruneVisibleLocations(workerContext); err != nil && workerContext.Err() == nil {
+				logger.Error("visible location retention failed", "failure", "internal")
+			}
+			select {
+			case <-workerContext.Done():
+				return
+			case <-ticker.C:
+			}
+		}
+	}()
+	if parentPushWorker != nil {
+		workers.Add(1)
+		go func() {
+			defer workers.Done()
+			if err := parentPushWorker.Run(workerContext); err != nil && workerContext.Err() == nil {
+				logger.Error("parent push worker stopped", "failure", "internal")
+			}
+		}()
+	}
+	serveErr := serve.Run(shutdownContext, listener, handler, logger, settings)
+	cancelWorkers()
+	workers.Wait()
+	return serveErr
+}
+
+func loadRecoveryHMACKey(path string) ([]byte, error) {
+	if path == "" {
+		return nil, nil
+	}
+	info, err := os.Stat(path)
+	if err != nil || !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("recovery key is unavailable")
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil || len(raw) != 32 {
+		return nil, fmt.Errorf("recovery key is unavailable")
+	}
+	return raw, nil
 }

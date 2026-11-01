@@ -1,5 +1,41 @@
 # Telecom feasibility prototype
 
+## Already-current output feedback - 25 October 2026
+
+The synthetic `endpoint-feedback-v1` check reproduced misleading unconfirmed
+feedback when Speaker was already current. Modern endpoint requests now accept
+that exact already-current choice immediately when no other request is pending;
+pending selections still use Telecom. Child full lint and debug/test/release
+assembly pass. Runtime shortcut and picker checks observe Speaker and clear
+feedback, with fixture/original-dialer cleanup. This AVD has no earpiece, and no
+physical sound, wired/Bluetooth or Android 13 route result is claimed. See
+`scripts/test-android-telecom-audio.ps1` and `logs/build/2026-10-25.txt`.
+
+## Child-process failure recovery - 25 October 2026
+
+When the child has no live call entry, its call screen offers **Open Android
+call controls**. An explicit local tap checks phone permission and delegates to
+Telecom's system call screen. If Android still has a call, the screen says that
+Android is handling it. No command or automatic answer/end action is added.
+
+`scripts/test-android-telecom-recovery.ps1` passes `process-recovery-v1` on the
+isolated unenrolled Android 37 Device Owner AVD. It arms one synthetic SIP call,
+keeps the instrumentation alive, SIGKILLs its exact child PID and observes a
+live preloaded in-call service binding. Old local/remote IDs cannot affect that
+call. The new button opens the actual preloaded UI; its End control disconnects
+the fixture. After complete call teardown, explicit normal role requalification
+lets the next call reach the child with a fresh ID and local rejection works.
+Cleanup unregisters the synthetic account and restores the original dialer.
+
+This is `preloaded-ui-and-explicit-next-call-requalification`, not automatic
+child rebind or mid-call handoff. Neither of those was observed in the earlier
+attempts. Users can finish the ongoing call with Android controls; requalifying
+the child as the phone app is a separate local recovery step after that call.
+Actual SIM, sound, locked-screen, dual-SIM and Redmi/HyperOS behavior remain open.
+Logs retain failed harness assumptions and successful reruns in
+`logs/build/2026-10-25.txt`. Current child release lint/assembly and the ordinary
+`ui-controls-v1` synthetic regression pass after this change.
+
 The child now contains a default-phone-role prototype. It is not a completed
 replacement dialer or a verified remote-call product. The backend can queue
 short-lived answer, reject and end commands for an exact child call ID, but

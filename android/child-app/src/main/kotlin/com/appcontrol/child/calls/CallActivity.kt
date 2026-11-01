@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.Manifest
 import android.content.Intent
 import android.os.Bundle
+import android.os.Build
 import android.telecom.Call
 import android.telecom.TelecomManager
 import android.view.Gravity
@@ -14,6 +15,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import com.appcontrol.transport.AppAppearance
 
 class CallActivity : Activity() {
     private lateinit var content: LinearLayout
@@ -23,10 +25,11 @@ class CallActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppAppearance.prepare(this)
         setShowWhenLocked(true)
         selected = savedInstanceState?.getString("selectedCallId") ?: intent.getStringExtra("callId")
-        content = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER; setPadding(32, 40, 32, 40) }
-        setContentView(ScrollView(this).apply { addView(content) })
+        content = AppAppearance.column(this).apply { gravity = Gravity.CENTER_HORIZONTAL }
+        setContentView(ScrollView(this).apply { isFillViewport = true; addView(content) })
     }
     override fun onStart() { super.onStart(); CallRegistry.observe(observer); render() }
     override fun onSaveInstanceState(outState: Bundle) {
@@ -36,8 +39,16 @@ class CallActivity : Activity() {
     override fun onStop() { CallRegistry.forget(observer); super.onStop() }
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); selected = intent.getStringExtra("callId"); render() }
 
-    private fun text(value: String) { content.addView(TextView(this).apply { text = value; textSize = 22f; gravity = Gravity.CENTER }) }
-    private fun button(label: String, action: () -> Unit) { content.addView(Button(this).apply { text = label; setOnClickListener { action() } }) }
+    private fun text(value: String) { content.addView(AppAppearance.text(this, value, 20f, true).apply { gravity = Gravity.CENTER }) }
+    private fun button(label: String, action: () -> Unit) { content.addView(Button(this).apply {
+        text = label
+        AppAppearance.styleButton(this, label == "Answer audio")
+        if (label == "End call" || label == "Reject") {
+            backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.rgb(176, 42, 62))
+            setTextColor(android.graphics.Color.WHITE)
+        }
+        setOnClickListener { action() }
+    }) }
     private fun action(id: String, type: CallActionGate.Action) {
         val result = CallRegistry.userAction(id, type)
         if (result != CallActionGate.Result.REQUESTED) Toast.makeText(this, "Call action is no longer available.", Toast.LENGTH_SHORT).show()
@@ -45,12 +56,17 @@ class CallActivity : Activity() {
     private fun render() {
         if (isDestroyed || !::content.isInitialized) return
         content.removeAllViews()
+        content.addView(AppAppearance.text(this, "APP CONTROL / CALL", 12f, true).apply {
+            gravity = Gravity.CENTER; setTextColor(android.graphics.Color.rgb(49, 91, 219))
+        })
+        content.addView(AppAppearance.text(this, "Call controls", 30f, true).apply { gravity = Gravity.CENTER })
         val calls = CallRegistry.all()
         if (selected == null) selected = calls.firstOrNull { CallRegistry.state(it.call) == CallActionGate.State.RINGING }?.id ?: calls.firstOrNull()?.id
         val entry = selected?.let { CallRegistry.find(it) }
         if (entry == null) {
             setTurnScreenOn(false)
-            text("No current call")
+            text(if (calls.isEmpty() && androidHasCall()) "Android is handling the current call." else "No current call")
+            if (calls.isEmpty()) button("Open Android call controls") { openAndroidCallControls() }
         } else {
             val state = CallRegistry.state(entry.call)
             setTurnScreenOn(state == CallActionGate.State.RINGING)
@@ -112,6 +128,10 @@ class CallActivity : Activity() {
                         content.addView(LinearLayout(this).apply {
                             for (digit in row) addView(Button(this@CallActivity).apply {
                                 text = digit.toString()
+                                AppAppearance.styleButton(this, false)
+                                textSize = 24f
+                                minimumHeight = AppAppearance.dp(this@CallActivity, 64f)
+                                contentDescription = if (digit == '*') "Star" else if (digit == '#') "Hash" else digit.toString()
                                 setOnTouchListener { view, event ->
                                     when (event.action) {
                                         MotionEvent.ACTION_DOWN -> if (CallRegistry.find(entry.id) === entry && CallRegistry.state(entry.call) == CallActionGate.State.ACTIVE) runCatching { entry.call.playDtmfTone(digit) }
@@ -119,7 +139,9 @@ class CallActivity : Activity() {
                                     }
                                     true
                                 }
-                            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+                            }, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                                setMargins(AppAppearance.dp(this@CallActivity, 3f), AppAppearance.dp(this@CallActivity, 3f), AppAppearance.dp(this@CallActivity, 3f), AppAppearance.dp(this@CallActivity, 3f))
+                            })
                         })
                     }
                 }
@@ -131,6 +153,19 @@ class CallActivity : Activity() {
     private fun route(id: String, speaker: Boolean) {
         if (CallRegistry.service?.requestSpeaker(id, speaker) != true) Toast.makeText(this, "Audio route is not available yet.", Toast.LENGTH_SHORT).show()
     }
+    private fun androidHasCall(): Boolean {
+        if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != android.content.pm.PackageManager.PERMISSION_GRANTED) return false
+        return try { getSystemService(TelecomManager::class.java).isInCall } catch (_: RuntimeException) { false }
+    }
+    private fun openAndroidCallControls() {
+        if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.READ_PHONE_STATE), 4405)
+            Toast.makeText(this, "After allowing phone access, tap Android call controls again.", Toast.LENGTH_LONG).show()
+            return
+        }
+        try { getSystemService(TelecomManager::class.java).showInCallScreen(false) }
+        catch (_: RuntimeException) { Toast.makeText(this, "Android call controls are unavailable. Open the phone app.", Toast.LENGTH_LONG).show() }
+    }
     private fun chooseAudio(id: String) {
         val service = CallRegistry.service ?: return
         val choices = service.audioChoices(id)
@@ -138,7 +173,7 @@ class CallActivity : Activity() {
         AlertDialog.Builder(this).setTitle("Audio output").setItems(choices.map { it.label }.toTypedArray()) { _, index ->
             val choice = choices[index]
             if (CallRegistry.service !== service || CallRegistry.find(id)?.let { CallRegistry.state(it.call) } != CallActionGate.State.ACTIVE) return@setItems
-            if (choice.requiresBluetoothPermission) {
+            if (choice.requiresBluetoothPermission && Build.VERSION.SDK_INT >= 31) {
                 pendingBluetoothCall = id
                 requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), 4406)
             } else if (!service.requestAudio(id, choice.id)) Toast.makeText(this, "That audio output is no longer available.", Toast.LENGTH_SHORT).show()
@@ -149,7 +184,7 @@ class CallActivity : Activity() {
         if (requestCode == 4405) render()
         if (requestCode == 4406) {
             val call = pendingBluetoothCall; pendingBluetoothCall = null; render()
-            if (call != null && selected == call && checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == android.content.pm.PackageManager.PERMISSION_GRANTED) chooseAudio(call)
+            if (call != null && selected == call && (Build.VERSION.SDK_INT < 31 || checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == android.content.pm.PackageManager.PERMISSION_GRANTED)) chooseAudio(call)
         }
     }
 }

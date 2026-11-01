@@ -133,20 +133,20 @@ func TestHTTPRateLimitSkipsPasswordWorkAndReturnsRetry(t *testing.T) {
 		return auth.Parent{}, auth.TokenPair{}, auth.ErrInvalidCredentials
 	}
 	handler := NewHandler(Options{Auth: fake})
-	for i := 0; i < 6; i++ {
+	for i := 0; i < 21; i++ {
 		r := httptest.NewRequest("POST", "/v1/auth/login", strings.NewReader(`{"email":"fixture@example.com","password":"fixture-password"}`))
 		r.RemoteAddr = "192.0.2.1:1"
 		r.Header.Set("X-Forwarded-For", "203.0.113."+strconv.Itoa(i+1))
 		w := httptest.NewRecorder()
 		handler.ServeHTTP(w, r)
-		if i < 5 && w.Code != 401 {
+		if i < 20 && w.Code != 401 {
 			t.Fatal("initial login response changed")
 		}
-		if i == 5 && (w.Code != 429 || w.Header().Get("Retry-After") == "" || w.Header().Get("Cache-Control") != "no-store") {
+		if i == 20 && (w.Code != 429 || w.Header().Get("Retry-After") == "" || w.Header().Get("Cache-Control") != "no-store") {
 			t.Fatal("missing safe rate-limit response")
 		}
 	}
-	if calls != 5 {
+	if calls != 20 {
 		t.Fatal("throttled request reached password work")
 	}
 }

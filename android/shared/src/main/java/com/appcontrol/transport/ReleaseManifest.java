@@ -70,7 +70,7 @@ public final class ReleaseManifest {
                 String packageName = string(app, "package");
                 require(packageName.equals("com.appcontrol.parent") || packageName.equals("com.appcontrol.child")); require(seen.add(packageName));
                 long version = integer(app, "versionCode"), min = integer(app, "minSdk"), target = integer(app, "targetSdk"), bytes = integer(app, "bytes");
-                require(version >= 1 && version <= 2100000000L && min >= 33 && target >= min && target <= 100 && bytes >= 1 && bytes <= 256L * 1024 * 1024);
+                require(version >= 1 && version <= 2100000000L && min >= (packageName.equals("com.appcontrol.child") ? 28 : 33) && target >= 33 && target >= min && target <= 100 && bytes >= 1 && bytes <= 256L * 1024 * 1024);
                 require(string(app, "versionName").matches("[A-Za-z0-9][A-Za-z0-9._+\\-]{0,63}") && string(app, "sha256").matches("[a-f0-9]{64}") && string(app, "signingCertificateSHA256").equals(certificate));
                 String name = packageName.equals("com.appcontrol.parent") ? "parent" : "child";
                 require(string(app, "url").equals(origin + "/releases/" + sequence + "/" + name + "-release.apk"));

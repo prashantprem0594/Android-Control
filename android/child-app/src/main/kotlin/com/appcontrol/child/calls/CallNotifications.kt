@@ -30,12 +30,29 @@ object CallNotifications {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val ringing = CallRegistry.state(entry.call) == CallActionGate.State.RINGING
         val person = Person.Builder().setName(CallRegistry.label(entry.call)).setImportant(true).build()
-        val style = if (ringing) Notification.CallStyle.forIncomingCall(person, action(CallActionGate.Action.REJECT), action(CallActionGate.Action.ANSWER))
-            else Notification.CallStyle.forOngoingCall(person, action(CallActionGate.Action.END))
+        val publicVersion = Notification.Builder(context, CHANNEL)
+            .setSmallIcon(android.R.drawable.sym_call_incoming)
+            .setContentTitle(if (ringing) "Incoming call" else "Call in progress")
+            .setContentText(CallNotificationPrivacy.lockScreenText())
+            .setCategory(Notification.CATEGORY_CALL)
+            .build()
         val builder = Notification.Builder(context, CHANNEL).setSmallIcon(android.R.drawable.sym_call_incoming)
             .setContentTitle(if (ringing) "Incoming call" else "Call in progress")
             .setContentText(CallRegistry.label(entry.call)).setCategory(Notification.CATEGORY_CALL)
-            .setContentIntent(open).setStyle(style).setOngoing(true).setOnlyAlertOnce(true)
+            .setContentIntent(open).setOngoing(true).setOnlyAlertOnce(true)
+            .setVisibility(Notification.VISIBILITY_PRIVATE).setPublicVersion(publicVersion)
+        if (Build.VERSION.SDK_INT >= 31) {
+            builder.setStyle(if (ringing) Notification.CallStyle.forIncomingCall(person, action(CallActionGate.Action.REJECT), action(CallActionGate.Action.ANSWER))
+                else Notification.CallStyle.forOngoingCall(person, action(CallActionGate.Action.END)))
+        } else {
+            fun add(label: String, type: CallActionGate.Action) {
+                builder.addAction(Notification.Action.Builder(null, label, action(type)).build())
+            }
+            if (ringing) {
+                add("Reject", CallActionGate.Action.REJECT)
+                add("Answer", CallActionGate.Action.ANSWER)
+            } else add("End", CallActionGate.Action.END)
+        }
         if (ringing && (Build.VERSION.SDK_INT < 34 || manager.canUseFullScreenIntent())) builder.setFullScreenIntent(open, true)
         runCatching { manager.notify(entry.id, ID, builder.build()) }
     }

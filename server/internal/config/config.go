@@ -14,28 +14,32 @@ const defaultMaxHeaderBytes = 1 << 20
 type LookupEnv func(string) (string, bool)
 
 type Config struct {
-	ReleaseManifestPath      string
-	ReleasePublicKeyPath     string
-	ReleaseOrigin            string
-	ReleaseCertificate       string
-	ReleaseMinimumSequence   int
-	RemoteCallsEnabled       bool
-	WakeupServiceAccountPath string
-	WakeupTokenKeyPath       string
-	HTTPAddress              string
-	DatabasePath             string
-	ReadHeaderTimeout        time.Duration
-	ReadTimeout              time.Duration
-	WriteTimeout             time.Duration
-	IdleTimeout              time.Duration
-	ShutdownTimeout          time.Duration
-	MaxHeaderBytes           int
-	RequestTimeout           time.Duration
-	MaxInFlight              int
-	MaxPasswordInFlight      int
-	MaxRatePeers             int
-	RateScale                int
-	TrustedProxies           []netip.Prefix
+	ReleaseManifestPath            string
+	ReleasePublicKeyPath           string
+	ReleaseOrigin                  string
+	ReleaseCertificate             string
+	ReleaseMinimumSequence         int
+	RemoteCallsEnabled             bool
+	WakeupServiceAccountPath       string
+	WakeupTokenKeyPath             string
+	ParentWakeupTokenKeyPath       string
+	ParentWakeupServiceAccountPath string
+	ParentWakeupSenderEnabled      bool
+	RecoveryHMACKeyPath            string
+	HTTPAddress                    string
+	DatabasePath                   string
+	ReadHeaderTimeout              time.Duration
+	ReadTimeout                    time.Duration
+	WriteTimeout                   time.Duration
+	IdleTimeout                    time.Duration
+	ShutdownTimeout                time.Duration
+	MaxHeaderBytes                 int
+	RequestTimeout                 time.Duration
+	MaxInFlight                    int
+	MaxPasswordInFlight            int
+	MaxRatePeers                   int
+	RateScale                      int
+	TrustedProxies                 []netip.Prefix
 }
 
 func Load(lookup LookupEnv) (Config, error) {
@@ -44,25 +48,28 @@ func Load(lookup LookupEnv) (Config, error) {
 	}
 
 	result := Config{
-		ReleaseManifestPath:      strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_RELEASE_MANIFEST_FILE", "")),
-		ReleasePublicKeyPath:     strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_RELEASE_PUBLIC_KEY_FILE", "")),
-		ReleaseOrigin:            strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_RELEASE_ORIGIN", "")),
-		ReleaseCertificate:       strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_RELEASE_CERTIFICATE_SHA256", "")),
-		WakeupServiceAccountPath: strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_FCM_SERVICE_ACCOUNT_FILE", "")),
-		WakeupTokenKeyPath:       strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_FCM_TOKEN_KEY_FILE", "")),
-		HTTPAddress:              valueOrDefault(lookup, "APP_CONTROL_HTTP_ADDRESS", ":8080"),
-		DatabasePath:             valueOrDefault(lookup, "APP_CONTROL_DATABASE_PATH", "data/app-control.db"),
-		ReadHeaderTimeout:        5 * time.Second,
-		ReadTimeout:              15 * time.Second,
-		WriteTimeout:             15 * time.Second,
-		IdleTimeout:              60 * time.Second,
-		ShutdownTimeout:          10 * time.Second,
-		MaxHeaderBytes:           defaultMaxHeaderBytes,
-		RequestTimeout:           12 * time.Second,
-		MaxInFlight:              128,
-		MaxPasswordInFlight:      2,
-		MaxRatePeers:             4096,
-		RateScale:                1,
+		ReleaseManifestPath:            strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_RELEASE_MANIFEST_FILE", "")),
+		ReleasePublicKeyPath:           strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_RELEASE_PUBLIC_KEY_FILE", "")),
+		ReleaseOrigin:                  strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_RELEASE_ORIGIN", "")),
+		ReleaseCertificate:             strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_RELEASE_CERTIFICATE_SHA256", "")),
+		WakeupServiceAccountPath:       strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_FCM_SERVICE_ACCOUNT_FILE", "")),
+		WakeupTokenKeyPath:             strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_FCM_TOKEN_KEY_FILE", "")),
+		ParentWakeupTokenKeyPath:       strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_PARENT_FCM_TOKEN_KEY_FILE", "")),
+		ParentWakeupServiceAccountPath: strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_PARENT_FCM_SERVICE_ACCOUNT_FILE", "")),
+		RecoveryHMACKeyPath:            strings.TrimSpace(valueOrDefault(lookup, "APP_CONTROL_RECOVERY_HMAC_KEY_FILE", "")),
+		HTTPAddress:                    valueOrDefault(lookup, "APP_CONTROL_HTTP_ADDRESS", ":8080"),
+		DatabasePath:                   valueOrDefault(lookup, "APP_CONTROL_DATABASE_PATH", "data/app-control.db"),
+		ReadHeaderTimeout:              5 * time.Second,
+		ReadTimeout:                    15 * time.Second,
+		WriteTimeout:                   15 * time.Second,
+		IdleTimeout:                    60 * time.Second,
+		ShutdownTimeout:                10 * time.Second,
+		MaxHeaderBytes:                 defaultMaxHeaderBytes,
+		RequestTimeout:                 12 * time.Second,
+		MaxInFlight:                    128,
+		MaxPasswordInFlight:            2,
+		MaxRatePeers:                   4096,
+		RateScale:                      1,
 	}
 
 	var err error
@@ -71,6 +78,15 @@ func Load(lookup LookupEnv) (Config, error) {
 		return Config{}, fmt.Errorf("APP_CONTROL_REMOTE_CALLS_ENABLED must be true or false")
 	}
 	result.RemoteCallsEnabled = remoteCalls == "true"
+	parentSender := valueOrDefault(lookup, "APP_CONTROL_PARENT_FCM_SENDER_ENABLED", "false")
+	if parentSender != "true" && parentSender != "false" {
+		return Config{}, fmt.Errorf("APP_CONTROL_PARENT_FCM_SENDER_ENABLED must be true or false")
+	}
+	result.ParentWakeupSenderEnabled = parentSender == "true"
+	if result.ParentWakeupSenderEnabled &&
+		(result.ParentWakeupTokenKeyPath == "" || result.ParentWakeupServiceAccountPath == "") {
+		return Config{}, fmt.Errorf("parent FCM sender requires parent token key and parent service account files")
+	}
 	if result.ReleaseMinimumSequence, err = strconv.Atoi(valueOrDefault(lookup, "APP_CONTROL_RELEASE_MIN_SEQUENCE", "0")); err != nil || result.ReleaseMinimumSequence < 0 || result.ReleaseMinimumSequence > 2100000000 {
 		return Config{}, fmt.Errorf("invalid release minimum sequence")
 	}

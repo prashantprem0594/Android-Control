@@ -93,24 +93,38 @@ canonical opaque `syncHint`, then request the existing network-constrained sync;
 token registration uses the authenticated device session and the existing
 server-origin gate.
 
-Android polling APK compilation, Firebase-variant configuration validation,
-opaque-hint rejection checks, and both Firebase-enabled variant builds pass.
-The debug APK and unsigned release APK include the Firebase application and
-messaging service. The compile used fixture Gradle properties because no test
-Firebase project configuration was available in the workspace or environment;
-it did not authenticate to Firebase or send a message. Live integration still
-requires a real test project with only Cloud Messaging, appropriate operator
-IAM configuration, and device delivery tests. No real credentials were read
-and no live message was sent in verification. Do not mark live-delivery
-acceptance complete without device evidence. The child retains
-foreground/background reconciliation as the transport fallback.
-The server implementation adds no external Go dependencies. Android SDK download
-and live project/device evidence remain external prerequisites.
+## Fixture and build evidence
 
-On 25 October, the exported-configuration build matrix also passes full
-`lintFcmRelease` and assembly with update authority configured. APK manifest/DEX
-inspection confirms the Firebase service/SDK is present only in the Firebase
-child APK, not parent or polling releases. Compiled public Firebase settings
-match the export. See [configuration evidence](PRODUCTION_CONFIGURATION.md).
-All project values remain synthetic; no live Firebase request or delivery was
-performed by this build check.
+The following are local fixture/build checks only:
+
+- Polling APK compilation, Firebase-variant configuration validation and
+  opaque-hint rejection checks pass.
+- The `fcmDebug` and unsigned `fcmRelease` builds pass and include the Firebase
+  application and messaging service. Ordinary polling variants do not include
+  Firebase SDK code.
+- The 25 October exported-configuration matrix passes `lintFcmRelease` and
+  assembly with synthetic Firebase settings. APK manifest/DEX inspection
+  confirms the Firebase service/SDK is present only in the Firebase child APK,
+  not the parent or polling releases. Compiled public settings match the
+  synthetic export. See [configuration evidence](PRODUCTION_CONFIGURATION.md).
+
+These checks used fixture Gradle properties, not a configured test Firebase
+project. They establish compilation, packaging and local contract/configuration
+behavior only. They did not authenticate to Firebase, obtain a live registration
+token, send a message or observe a device receiving one. Successful build tasks
+are not Firebase service or device-delivery evidence.
+
+## Live Firebase and device delivery: unverified
+
+No live Firebase project configuration or device-delivery evidence has been
+verified. A real test project with only Cloud Messaging enabled, suitable
+operator IAM configuration, and an authorized test device are still required
+to verify project registration, token registration, OAuth/IAM behavior,
+message delivery and the subsequent authenticated sync. No live message was
+sent and no real Firebase credentials were read during the checks above.
+Keep live-delivery and authenticated-sync acceptance open until those checks
+have device evidence. The child retains foreground/background reconciliation
+as the transport fallback.
+
+The server implementation adds no external Go dependencies. Android SDK
+download and live project/device evidence remain external prerequisites.

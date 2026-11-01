@@ -15,6 +15,7 @@ data/
 *.db-shm
 *.db-wal
 .env
+releases/app-history/
 *.pem
 *.key
 *.jks

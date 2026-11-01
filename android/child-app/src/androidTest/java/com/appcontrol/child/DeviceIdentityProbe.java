@@ -56,6 +56,12 @@ public final class DeviceIdentityProbe {
             String authPrefix = "app-control-device-auth-v1\n" + device + "\n" + auth + "\n";
             require(!verify(publicKey, authPrefix, challenge, proof));
             require(verify(publicKey, authPrefix, challenge, identity.signAuthentication(device, auth, value)));
+            String recoveryRequest = "drr_DDDDDDDDDDDDDDDDDDDDDD";
+            String recoveryPrefix = "app-control-device-recovery-v1\n" + recoveryRequest + "\n";
+            String recoveryProof = identity.signRecovery(recoveryRequest, value);
+            require(verify(publicKey, recoveryPrefix, challenge, recoveryProof));
+            require(!verify(publicKey, enrollmentPrefix, challenge, recoveryProof));
+            require(!verify(publicKey, recoveryPrefix, changed, recoveryProof));
             StringBuilder fingerprint = new StringBuilder();
             for (byte part : MessageDigest.getInstance("SHA-256").digest(decode(encoded))) fingerprint.append(String.format("%02x", part & 255));
             result.putString("public_key_sha256", fingerprint.toString());

@@ -1,0 +1,29 @@
+{
+	# No cleartext listener or automatic certificate-key rotation in this template.
+	auto_https disable_redirects
+}
+
+# Replace this reserved placeholder with the same controlled hostname compiled into APKs.
+https://control.example.invalid {
+	# Operator-managed, CA-valid certificate and private key; match current/backup APK pins.
+	tls /etc/caddy/app-control/fullchain.pem /etc/caddy/app-control/private.key
+
+	@api path /v1/* /healthz /readyz
+	handle @api {
+		reverse_proxy 127.0.0.1:8080 {
+			# Replace supplied forwarding headers at this single trusted edge.
+			header_up X-Forwarded-For {http.request.remote.host}
+			header_up -Forwarded
+			header_up -X-Real-IP
+		}
+	}
+
+	# Optional public signed APK hosting. Copy only the reviewed releases subtree here.
+	@apk path_regexp apk ^/releases/[1-9][0-9]*/(parent|child)-release[.]apk$
+	handle @apk {
+		root * /srv/app-control-public
+		file_server
+	}
+
+	respond 404
+}

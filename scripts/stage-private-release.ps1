@@ -45,8 +45,9 @@ try {
         $destination = Join-Path $artifactRoot ($name+'-release.apk')
         if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw 'Both signed release APKs are required.' }
         [IO.File]::Copy([IO.Path]::GetFullPath($source),$destination,$false)
+        $minimumSdk = if ($name -eq 'child') { '28' } else { '33' }
         # Inspect the copied bytes, never an unsigned inventory supplied beside them.
-        $signed = Invoke-PublicTool $signer @('verify','--verbose','--print-certs','--min-sdk-version','33',$destination)
+        $signed = Invoke-PublicTool $signer @('verify','--verbose','--print-certs','--min-sdk-version',$minimumSdk,$destination)
         $certificates = [regex]::Matches($signed,'(?m)^Signer #[0-9]+ certificate SHA-256 digest: ([a-fA-F0-9]{64})\r?$')
         if ($certificates.Count -ne 1 -or $certificates[0].Groups[1].Value.ToLowerInvariant() -cne $ExpectedCertificateSHA256 -or $signed.Contains('CN=Android Debug')) { throw 'APK does not have the expected release signer.' }
         $badging = Invoke-PublicTool $aapt @('dump','badging',$destination)

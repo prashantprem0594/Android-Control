@@ -4,7 +4,7 @@
 and exports consistent Gradle settings for both apps. It does not read private
 keys, build APKs, connect to Firebase, deploy a server or operate a phone.
 
-The input must contain exactly these fields:
+The input must contain the fields below. An optional `parentFirebase` field enables a separately configured parent Firebase variant; omit it or use null for a polling parent. Unknown fields are rejected.
 
 | Field | Required value |
 |---|---|
@@ -16,11 +16,11 @@ The input must contain exactly these fields:
 | `versionCode` | Integer 1–2100000000 |
 | `versionName` | App version name accepted by android/app-version.gradle.kts |
 | `remoteCallsEnabled` | Explicit boolean; use false until controlled rollout is intended |
-| `firebase` | Null for polling releases, or exactly four public fields below |
+| `firebase` | Null for a polling child, or exactly four public fields below |
+| `parentFirebase` | Optional; null for a polling parent, or its separate public Firebase fields |
 
 Firebase fields are `applicationId`, `apiKey`, `projectId`, `senderId`.
-The application and sender IDs must agree. This uses the existing child Firebase
-variant; it does not add parent push delivery. Service-account JSON, passwords,
+The application and sender IDs must agree. Parent and child application IDs must differ when both are enabled. Each app independently selects its polling or fcmRelease variant. Service-account JSON, passwords,
 pairing grants, private keys and tokens are not accepted configuration fields.
 
 Obtain pins using the controlled-certificate procedure in
@@ -29,6 +29,8 @@ identity independently through [PRIVATE_UPDATES.md](PRIVATE_UPDATES.md).
 Keep production private signing/metadata keys outside this public configuration.
 
 ## Export and use
+
+For a read-only input inventory, run `scripts/check-production-prerequisites.ps1` through the logging wrapper. Supply `-ConfigurationFile`, `-ApkSigningKeystore`, `-UpdateSigningKeyFile` and `-ServerConfigurationFile` as local file paths. It reports missing inputs and structural public-configuration failures without displaying file paths or contents. Private-file presence does not verify key matching, credentials or deployment; `productionReady` remains false. The exporter also accepts `-ValidateOnly` to validate public settings without creating an output directory.
 
 From the workspace root, through the logger:
 
@@ -96,3 +98,5 @@ Independent reinspection confirms all recorded hashes, actual APK version 4 /
 flags. Both successful and failed checker attempts are in
 `logs/build/2026-10-25.txt`; the failures were corrected checker assertions and
 native-stderr handling, not production-readiness evidence.
+
+The parent settings export as appControlParentFirebase and appControlParentFirebaseApplicationId/ApiKey/ProjectId/SenderId, plus parent-firebase-public.json. They are public project configuration, not service-account credentials. Export validation does not confirm Firebase package registration or live delivery. The parent SDK keeps automatic initialization disabled for messaging; authenticated, notification-permitted worker activity obtains its token explicitly. Polling APKs exclude the Firebase SDK.

@@ -80,6 +80,20 @@ func (s *Service) ReportRemoteCalls(ctx context.Context, token string, sequence 
 		if sequence > allocated {
 			return ErrInvalid
 		}
+		previous := make(map[string]string)
+		var previousJSON string
+		err = tx.QueryRowContext(ctx, `SELECT calls_json FROM remote_call_snapshots WHERE device_id=?`, id).Scan(&previousJSON)
+		if err == nil {
+			var oldCalls []RemoteCall
+			if err := json.Unmarshal([]byte(previousJSON), &oldCalls); err != nil {
+				return err
+			}
+			for _, call := range oldCalls {
+				previous[call.CallID] = call.State
+			}
+		} else if !errors.Is(err, sql.ErrNoRows) {
+			return err
+		}
 		result, err := tx.ExecContext(ctx, `INSERT INTO remote_call_snapshots(device_id,parent_account_id,observed_at,calls_json,snapshot_sequence)
 		 SELECT id,parent_account_id,?,?,? FROM devices WHERE id=?
 		 ON CONFLICT(device_id) DO UPDATE SET parent_account_id=excluded.parent_account_id,
@@ -94,6 +108,61 @@ func (s *Service) ReportRemoteCalls(ctx context.Context, token string, sequence 
 			return err
 		}
 		accepted = rows == 1
+		if accepted {
+			var parentID string
+			if err := tx.QueryRowContext(ctx, `SELECT parent_account_id FROM devices WHERE id=? AND state='active'`, id).Scan(&parentID); err != nil {
+				return err
+			}
+			current := make(map[string]string, len(calls))
+			for _, call := range calls {
+				current[call.CallID] = call.State
+			}
+			events, err := tx.QueryContext(ctx, `SELECT event_id,call_id FROM parent_call_events
+				WHERE device_id=? AND status='active'`, id)
+			if err != nil {
+				return err
+			}
+			var expiredEvents []string
+			for events.Next() {
+				var eventID, callID string
+				if err := events.Scan(&eventID, &callID); err != nil {
+					events.Close()
+					return err
+				}
+				if current[callID] != "RINGING" {
+					expiredEvents = append(expiredEvents, eventID)
+				}
+			}
+			if err := events.Err(); err != nil {
+				events.Close()
+				return err
+			}
+			if err := events.Close(); err != nil {
+				return err
+			}
+			for _, eventID := range expiredEvents {
+				if _, err := tx.ExecContext(ctx, `UPDATE parent_call_events SET status='expired' WHERE event_id=?`, eventID); err != nil {
+					return err
+				}
+				if _, err := tx.ExecContext(ctx, `UPDATE parent_call_event_deliveries SET status='expired',
+					lease_id=NULL,lease_expires_at_ns=NULL WHERE event_id=? AND status IN ('pending','leased')`, eventID); err != nil {
+					return err
+				}
+			}
+			for _, call := range calls {
+				if call.State != "RINGING" || previous[call.CallID] == "RINGING" {
+					continue
+				}
+				eventID := id + ":" + call.CallID
+				if _, err := tx.ExecContext(ctx, `INSERT OR IGNORE INTO parent_call_events
+					(event_id,device_id,parent_account_id,call_id,snapshot_sequence,observed_at,created_at_ns,expires_at_ns,status)
+					VALUES(?,?,?,?,?,?,?,?, 'active')`,
+					eventID, id, parentID, call.CallID, sequence, now.Format(time.RFC3339Nano),
+					now.UnixNano(), now.Add(30*time.Second).UnixNano()); err != nil {
+					return err
+				}
+			}
+		}
 		return nil
 	})
 	return accepted, err

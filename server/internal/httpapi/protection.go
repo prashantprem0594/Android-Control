@@ -83,6 +83,11 @@ func requestGroup(r *http.Request) string {
 		}
 	}
 	if r.Method == "POST" {
+		if r.URL.Path == "/v1/device-recovery/requests" ||
+			strings.HasPrefix(r.URL.Path, "/v1/device-recovery/requests/") &&
+				(strings.HasSuffix(r.URL.Path, "/proof") || strings.HasSuffix(r.URL.Path, "/status")) {
+			return "device-recovery"
+		}
 		switch r.URL.Path {
 		case "/v1/auth/register", "/v1/auth/login":
 			return "password"
@@ -99,14 +104,17 @@ func requestGroup(r *http.Request) string {
 func rates(group string, scale int) (peer, global requestRate) {
 	switch group {
 	case "password":
-		peer = requestRate{10, 5}
-		global = requestRate{60, 10}
+		peer = requestRate{20, 20}
+		global = requestRate{60, 20}
 	case "enrollment":
 		peer = requestRate{60, 20}
 		global = requestRate{240, 60}
 	case "device-auth":
 		peer = requestRate{120, 30}
 		global = requestRate{600, 120}
+	case "device-recovery":
+		peer = requestRate{10, 5}
+		global = requestRate{120, 30}
 	case "session":
 		peer = requestRate{120, 30}
 		global = requestRate{600, 120}

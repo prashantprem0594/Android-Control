@@ -40,7 +40,7 @@ android {
 
     defaultConfig {
         applicationId = "com.appcontrol.child"
-        minSdk = 33
+        minSdk = 28
         targetSdk = 37
         versionCode = project.extra["appVersionCode"] as Int
         versionName = project.extra["appVersionName"] as String
@@ -100,17 +100,55 @@ if (firebaseEnabled) {
 
 abstract class GenerateServerTrustResources : DefaultTask() {
     @get:Input abstract val xmlContent: Property<String>
+    @get:Input abstract val developmentCaPem: Property<String>
     @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
     @TaskAction fun generate() {
         val target = outputDirectory.file("xml/server_trust.xml").get().asFile
         target.parentFile.mkdirs()
         target.writeText(xmlContent.get())
+        val developmentCa = outputDirectory.file("raw/appcontrol_development_ca.pem").get().asFile
+        if (developmentCaPem.get().isNotEmpty()) {
+            developmentCa.parentFile.mkdirs()
+            developmentCa.writeText(developmentCaPem.get())
+        } else if (developmentCa.exists()) {
+            check(developmentCa.delete()) { "Cannot remove stale generated development CA resource" }
+        }
+    }
+}
+abstract class GenerateFirebaseOptionsResources : DefaultTask() {
+    @get:Input abstract val applicationId: Property<String>
+    @get:Input abstract val apiKey: Property<String>
+    @get:Input abstract val projectId: Property<String>
+    @get:Input abstract val senderId: Property<String>
+    @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
+    @TaskAction fun generate() {
+        val target = outputDirectory.file("values/firebase_options.xml").get().asFile
+        target.parentFile.mkdirs()
+        target.writeText("""<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="google_app_id" translatable="false">${applicationId.get()}</string>
+    <string name="google_api_key" translatable="false">${apiKey.get()}</string>
+    <string name="project_id" translatable="false">${projectId.get()}</string>
+    <string name="gcm_defaultSenderId" translatable="false">${senderId.get()}</string>
+</resources>
+""")
     }
 }
 androidComponents.onVariants { variant ->
     variant.sources.java?.addStaticSourceDirectory(rootProject.file("shared/src/main/java").absolutePath)
     val generateTrust = tasks.register<GenerateServerTrustResources>("generate${variant.name.replaceFirstChar { it.uppercaseChar() }}ServerTrust") {
-        xmlContent.set(project.extra["serverTrustXml"] as String)
+        val development = variant.buildType == "debug" || variant.buildType == "fcmDebug"
+        xmlContent.set(project.extra[if (development) "serverTrustDebugXml" else "serverTrustXml"] as String)
+        developmentCaPem.set(if (development) project.extra["serverTrustDevelopmentCaPem"] as String else "")
     }
     variant.sources.res?.addGeneratedSourceDirectory(generateTrust, GenerateServerTrustResources::outputDirectory)
+    if (variant.name == "fcmDebug" || variant.name == "fcmRelease") {
+        val generateFirebaseOptions = tasks.register<GenerateFirebaseOptionsResources>("generate${variant.name.replaceFirstChar { it.uppercaseChar() }}FirebaseOptions") {
+            applicationId.set(firebaseSettings.getValue("APPLICATION_ID"))
+            apiKey.set(firebaseSettings.getValue("API_KEY"))
+            projectId.set(firebaseSettings.getValue("PROJECT_ID"))
+            senderId.set(firebaseSettings.getValue("SENDER_ID"))
+        }
+        variant.sources.res?.addGeneratedSourceDirectory(generateFirebaseOptions, GenerateFirebaseOptionsResources::outputDirectory)
+    }
 }

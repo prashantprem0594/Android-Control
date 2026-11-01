@@ -77,16 +77,16 @@ func NewService(database *sql.DB, options Options) (*Service, error) {
 		options.AccessLifetime = 15 * time.Minute
 	}
 	if options.RefreshLifetime == 0 {
-		options.RefreshLifetime = 30 * 24 * time.Hour
+		options.RefreshLifetime = 10 * 365 * 24 * time.Hour
 	}
 	if options.LoginWindow == 0 {
 		options.LoginWindow = 15 * time.Minute
 	}
 	if options.LoginBlockDuration == 0 {
-		options.LoginBlockDuration = 15 * time.Minute
+		options.LoginBlockDuration = 5 * time.Second
 	}
 	if options.MaxLoginFailures == 0 {
-		options.MaxLoginFailures = 5
+		options.MaxLoginFailures = 20
 	}
 	if err := validatePasswordParameters(options.PasswordParameters); err != nil {
 		return nil, err
@@ -98,6 +98,9 @@ func NewService(database *sql.DB, options Options) (*Service, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create dummy password hash: %w", err)
 	}
+	if err := shortenExistingLoginBlocks(database, options.LoginBlockDuration); err != nil {
+		return nil, fmt.Errorf("update existing login block policy: %w", err)
+	}
 	return &Service{
 		database: database, now: options.Now, random: options.Random,
 		passwordParameters: options.PasswordParameters,
@@ -105,6 +108,62 @@ func NewService(database *sql.DB, options Options) (*Service, error) {
 		loginWindow: options.LoginWindow, loginBlockDuration: options.LoginBlockDuration,
 		maxLoginFailures: options.MaxLoginFailures, dummyPasswordHash: dummy,
 	}, nil
+}
+
+// Apply a shorter configured cooldown to blocks persisted by an earlier
+// server version while preserving their failure counts.
+func shortenExistingLoginBlocks(database *sql.DB, duration time.Duration) error {
+	rows, err := database.Query("SELECT email, updated_at, blocked_until FROM auth_login_failures WHERE blocked_until IS NOT NULL")
+	if err != nil {
+		return err
+	}
+	type loginBlock struct {
+		email string
+		until time.Time
+	}
+	var updates []loginBlock
+	for rows.Next() {
+		var email, updatedAt, blockedUntil string
+		if err := rows.Scan(&email, &updatedAt, &blockedUntil); err != nil {
+			rows.Close()
+			return err
+		}
+		updated, err := parseTime(updatedAt)
+		if err != nil {
+			rows.Close()
+			return err
+		}
+		blocked, err := parseTime(blockedUntil)
+		if err != nil {
+			rows.Close()
+			return err
+		}
+		shortened := updated.Add(duration)
+		if blocked.After(shortened) {
+			updates = append(updates, loginBlock{email: email, until: shortened})
+		}
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return err
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+	if len(updates) == 0 {
+		return nil
+	}
+	tx, err := database.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, update := range updates {
+		if _, err := tx.Exec("UPDATE auth_login_failures SET blocked_until=? WHERE email=?", formatTime(update.until), update.email); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func (service *Service) Register(ctx context.Context, email, password string) (Parent, error) {
@@ -231,10 +290,15 @@ func (service *Service) Refresh(ctx context.Context, refreshToken string) (Token
 			return ErrInvalidToken
 		}
 		if pair.RefreshExpiresAt.After(familyExpiry) {
-			pair.RefreshExpiresAt = familyExpiry
+			if _, err := transaction.ExecContext(ctx,
+				"UPDATE auth_session_families SET expires_at = ? WHERE id = ? AND revoked_at IS NULL",
+				formatTime(pair.RefreshExpiresAt), familyID,
+			); err != nil {
+				return fmt.Errorf("extend session family: %w", err)
+			}
 		}
-		if pair.AccessExpiresAt.After(familyExpiry) {
-			pair.AccessExpiresAt = familyExpiry
+		if pair.AccessExpiresAt.After(pair.RefreshExpiresAt) {
+			pair.AccessExpiresAt = pair.RefreshExpiresAt
 		}
 		result, err := transaction.ExecContext(ctx,
 			"UPDATE auth_refresh_tokens SET consumed_at = ?, replaced_by_hash = ? WHERE token_hash = ? AND consumed_at IS NULL",

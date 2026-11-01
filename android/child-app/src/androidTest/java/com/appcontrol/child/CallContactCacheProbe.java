@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import com.appcontrol.transport.AcceptanceHttps;
 
 /** Real Keystore/cache checks using isolated preferences on the unenrolled AVD. */
 public final class CallContactCacheProbe {
@@ -34,7 +35,8 @@ public final class CallContactCacheProbe {
         String phase = "guard";
         try {
             require(Build.FINGERPRINT.startsWith("google/sdk_gphone64_x86_64/emu64xa:"));
-            require(BuildConfig.DEBUG && "com.appcontrol.child".equals(context.getPackageName()));
+            require(BuildConfig.DEBUG && ("com.appcontrol.child".equals(context.getPackageName())
+                || "com.appcontrol.child.acceptance".equals(context.getPackageName())));
             require(context.getSharedPreferences("enrollment", Context.MODE_PRIVATE).getAll().isEmpty());
             Context isolated = new ContextWrapper(context) {
                 @Override public Context getApplicationContext() { return this; }
@@ -83,6 +85,23 @@ public final class CallContactCacheProbe {
             require(cache.edit().putString(slot, raw).commit());
             store.save(new JSONObject().put("version", 3).put("contacts", new JSONArray()));
             require(store.load().getVersion() == 3 && store.load().getContacts().isEmpty());
+            if (!BuildConfig.SERVER_ORIGIN.isEmpty() && AcceptanceHttps.isConfigured()) {
+                phase = "live_server_https";
+                Bundle live = LiveServerHttpsProbe.run(context);
+                if (live.containsKey("server_https_child_failure")) result.putString("server_https_child_failure", live.getString("server_https_child_failure"));
+                if (live.containsKey("server_https_child_http_status")) result.putInt("server_https_child_http_status", live.getInt("server_https_child_http_status"));
+                result.putString("server_https_child_probe", live.getString("server_https_child_probe", "failed"));
+                result.putString("server_https_child_phase", live.getString("server_https_child_phase", "complete"));
+                result.putString("server_https_device_identity_probe", live.getString("server_https_device_identity_probe", "failed"));
+                result.putString("server_https_production_enrollment_probe", live.getString("server_https_production_enrollment_probe", "failed"));
+                result.putString("server_https_contact_sync_probe", live.getString("server_https_contact_sync_probe", "failed"));
+                result.putString("server_https_contact_recovery_probe", live.getString("server_https_contact_recovery_probe", "failed"));
+                require("passed".equals(live.getString("server_https_child_probe")));
+                require("passed".equals(live.getString("server_https_device_identity_probe")));
+                require("passed".equals(live.getString("server_https_production_enrollment_probe")));
+                require("passed".equals(live.getString("server_https_contact_sync_probe")));
+                require("passed".equals(live.getString("server_https_contact_recovery_probe")));
+            }
             passed = true;
         } catch (Exception ignored) {
             // Only fixed phase/result labels are returned; no contact or key material.

@@ -51,10 +51,33 @@ $config.firebase.senderId = '12345'
 & $exporter -ConfigurationFile (Save-Input $config) -OutputDirectory (Join-Path $root 'firebase') -AllowFixture
 $fcm = Get-Content -LiteralPath (Join-Path $root 'firebase\release-arguments.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($fcm.tasks -notcontains ':child-app:assembleFcmRelease') { throw 'Wrong Firebase build task.' }
-foreach ($folder in @('polling','firebase')) {
+$config.parentFirebase=[ordered]@{applicationId='1:67890:android:fedcba';apiKey=('p'*24);projectId='configuration-parent-fixture';senderId='67890'}
+& $exporter -ConfigurationFile (Save-Input $config) -OutputDirectory (Join-Path $root 'both-firebase') -AllowFixture
+$both=Get-Content -LiteralPath (Join-Path $root 'both-firebase/release-arguments.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+if($both.tasks -notcontains ':parent-app:assembleFcmRelease' -or $both.tasks -notcontains ':child-app:assembleFcmRelease' -or $both.arguments -notcontains '-PappControlParentFirebaseApplicationId=1:67890:android:fedcba' -or $both.arguments -notcontains '-PappControlFirebaseApplicationId=1:12345:android:abcdef'){throw 'Parent/child Firebase configuration was mixed.'}
+$config.parentFirebase.senderId='54321'
+Refuses $config $true
+$config.parentFirebase.senderId='67890'
+$config.parentFirebase.privateKey='must-not-be-exported'
+Refuses $config $true
+$config.parentFirebase.Remove('privateKey')
+$config.parentFirebase.applicationId=$config.firebase.applicationId
+$config.parentFirebase.senderId=$config.firebase.senderId
+Refuses $config $true
+$config.parentFirebase.applicationId='1:67890:android:fedcba'
+$config.parentFirebase.senderId='67890'
+$config.firebase=$null
+& $exporter -ConfigurationFile (Save-Input $config) -OutputDirectory (Join-Path $root 'parent-firebase') -AllowFixture
+$parentOnly=Get-Content -LiteralPath (Join-Path $root 'parent-firebase/release-arguments.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+if($parentOnly.tasks -notcontains ':parent-app:assembleFcmRelease' -or $parentOnly.tasks -notcontains ':child-app:assembleRelease' -or $parentOnly.arguments -notcontains '-PappControlFirebase=false' -or $parentOnly.arguments -notcontains '-PappControlParentFirebase=true'){throw 'Parent-only Firebase export enabled the wrong variants.'}
+$config.parentFirebase=$null
+& $exporter -ConfigurationFile (Save-Input $config) -OutputDirectory (Join-Path $root 'explicit-parent-polling') -AllowFixture
+$poll=Get-Content -LiteralPath (Join-Path $root 'explicit-parent-polling/release-arguments.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+if($poll.tasks -notcontains ':parent-app:assembleRelease' -or $poll.arguments -notcontains '-PappControlParentFirebase=false'){throw 'Explicit null parent Firebase configuration did not retain polling.'}
+foreach ($folder in @('polling','firebase','both-firebase','parent-firebase','explicit-parent-polling')) {
     $summary = Get-Content -LiteralPath (Join-Path $root "$folder\configuration.json") -Raw -Encoding UTF8 | ConvertFrom-Json
     foreach ($file in $summary.files) {
         if ((Get-FileHash -LiteralPath (Join-Path $root "$folder\$($file.name)") -Algorithm SHA256).Hash.ToLowerInvariant() -cne $file.sha256) { throw 'Export hash mismatch.' }
     }
 }
-Write-Output "production-configuration-valid fixture/refusal/polling/firebase/manifest checks; public fixtures at $root"
+Write-Output "production-configuration-valid fixture/refusal/polling/child-parent-independent-firebase/manifest checks; public fixtures at $root"

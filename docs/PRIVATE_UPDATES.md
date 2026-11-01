@@ -5,6 +5,8 @@ replay-protection and installer-session code. Entries appear only with compiled
 update authority. There is no automatic installation, uninstall, data clearing
 or factory-reset operation.
 
+Android 9 compatibility: the child release may declare minimum API 28; the parent remains API 33. Metadata validation and signing/staging tools use those separate floors. Private update verification still requires an available Ed25519 key/signature provider. If the platform lacks it, the update screen disables checking and directs the operator to install a signed update with Android's installer. Signature, signer and replay checks are never bypassed. Enrolled update continuity on the physical child remains unverified.
+
 ## Build configuration
 
 Provide the existing HTTPS origin/current/backup TLS pins plus:
@@ -105,3 +107,14 @@ Production authority, live HTTPS transfer, installation prompts/callbacks,
 restart recovery, enrolled-device data preservation, rollback and Redmi
 acceptance remain open. The installer flow is compiled, not physically proven.
 Local release checks do not satisfy the physical device matrix.
+
+On 25 October, `scripts/test-android-release-persistence.ps1` passes
+`replay-persistence-v1` on the isolated unenrolled Android 37 AVD. Separate
+prepare/restart/reboot/cleanup phases span a logged force-stop and real reboot.
+A new PID at the same boot and a later boot count verify the lifecycle boundary;
+the production `ReleaseState` retains sequence 2 and the same state digest.
+The same signed payload remains retryable; older, conflicting same-sequence and
+different-binding payloads are rejected without rewriting the floor. Test
+preferences are cleaned up. Only public fixture envelopes are persisted;
+the preparation signing key stays in memory. This does not prove actual installer
+callback recovery, production key custody, a live download or enrolled updates.

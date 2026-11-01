@@ -69,7 +69,7 @@ func loginHandler(service AuthService) http.HandlerFunc {
 		case errors.Is(err, auth.ErrInvalidCredentials):
 			writeError(response, http.StatusUnauthorized, "invalid_credentials")
 		case errors.Is(err, auth.ErrLoginRateLimited):
-			response.Header().Set("Retry-After", "60")
+			response.Header().Set("Retry-After", "5")
 			writeError(response, http.StatusTooManyRequests, "rate_limited")
 		case err != nil:
 			writeError(response, http.StatusInternalServerError, "server_error")

@@ -52,10 +52,11 @@ try {
     $records = @()
     foreach ($app in @('parent', 'child')) {
         $destination = Join-Path $OutputDirectory ($app + '-release.apk')
+        $minimumSdk = if ($app -eq 'child') { '28' } else { '33' }
         # Passwords use UTF-8 stdin; never arguments, environment or files.
-        $signResult = Invoke-PrivateTool -Executable $signer -PrivateInput @($storeText, $keyText) -Arguments @('sign', '--ks', $KeystoreFile, '--ks-key-alias', $KeyAlias, '--ks-pass', 'stdin', '--key-pass', 'stdin', '--pass-encoding', 'utf-8', '--v1-signing-enabled', 'false', '--v2-signing-enabled', 'true', '--v3-signing-enabled', 'true', '--v4-signing-enabled', 'false', '--debuggable-apk-permitted', 'false', '--min-sdk-version', '33', '--in', $inputs[$app], '--out', $destination)
+        $signResult = Invoke-PrivateTool -Executable $signer -PrivateInput @($storeText, $keyText) -Arguments @('sign', '--ks', $KeystoreFile, '--ks-key-alias', $KeyAlias, '--ks-pass', 'stdin', '--key-pass', 'stdin', '--pass-encoding', 'utf-8', '--v1-signing-enabled', 'false', '--v2-signing-enabled', 'true', '--v3-signing-enabled', 'true', '--v4-signing-enabled', 'false', '--debuggable-apk-permitted', 'false', '--min-sdk-version', $minimumSdk, '--in', $inputs[$app], '--out', $destination)
         if ($signResult.ExitCode -ne 0) { throw 'APK signing failed; no artifact is approved for distribution.' }
-        $verifyResult = Invoke-PrivateTool -Executable $signer -Arguments @('verify', '--verbose', '--print-certs', '--min-sdk-version', '33', $destination)
+        $verifyResult = Invoke-PrivateTool -Executable $signer -Arguments @('verify', '--verbose', '--print-certs', '--min-sdk-version', $minimumSdk, $destination)
         if ($verifyResult.ExitCode -ne 0) { throw 'APK signature verification failed.' }
         $verification = $verifyResult.Output -join "`n"
         $certificates = [regex]::Matches($verification, '(?m)^Signer #[0-9]+ certificate SHA-256 digest: ([a-fA-F0-9]{64})\r?$')

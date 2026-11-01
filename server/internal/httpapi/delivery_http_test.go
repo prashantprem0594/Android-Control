@@ -9,10 +9,13 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+	"io"
+	"net/http"
 	"net/http/httptest"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"appcontrol/server/internal/auth"
 	"appcontrol/server/internal/control"
@@ -21,6 +24,11 @@ import (
 )
 
 func TestEnrolledDeviceCommandTransport(t *testing.T) {
+	t.Run("handler", func(t *testing.T) { testEnrolledDeviceCommandTransport(t, false) })
+	t.Run("https", func(t *testing.T) { testEnrolledDeviceCommandTransport(t, true) })
+}
+
+func testEnrolledDeviceCommandTransport(t *testing.T, overTLS bool) {
 	ctx := context.Background()
 	db, err := storage.Open(ctx, filepath.Join(t.TempDir(), "pairing.db"))
 	if err != nil {
@@ -47,6 +55,14 @@ func TestEnrolledDeviceCommandTransport(t *testing.T) {
 		return auth.Parent{ID: "another-parent"}, "", nil
 	}
 	handler := NewHandler(Options{Auth: fake, Pairing: service, Control: control.NewService(db)})
+	var server *httptest.Server
+	var client *http.Client
+	if overTLS {
+		server = httptest.NewTLSServer(handler)
+		defer server.Close()
+		client = server.Client()
+		client.Timeout = 10 * time.Second
+	}
 	call := func(method, path, token, body string, expected int, target any) {
 		t.Helper()
 		request := httptest.NewRequest(method, path, strings.NewReader(body))
@@ -54,7 +70,26 @@ func TestEnrolledDeviceCommandTransport(t *testing.T) {
 			request.Header.Set("Authorization", "Bearer "+token)
 		}
 		response := httptest.NewRecorder()
-		handler.ServeHTTP(response, request)
+		if overTLS {
+			wire, err := http.NewRequest(method, server.URL+path, strings.NewReader(body))
+			if err != nil {
+				t.Fatal(err)
+			}
+			wire.Header = request.Header.Clone()
+			actual, err := client.Do(wire)
+			if err != nil {
+				t.Fatal(err)
+			}
+			payload, readErr := io.ReadAll(io.LimitReader(actual.Body, 1<<20))
+			closeErr := actual.Body.Close()
+			if readErr != nil || closeErr != nil {
+				t.Fatal("HTTPS response could not be read and closed")
+			}
+			response.WriteHeader(actual.StatusCode)
+			_, _ = response.Write(payload)
+		} else {
+			handler.ServeHTTP(response, request)
+		}
 		if response.Code != expected {
 			t.Fatalf("%s: status=%d expected=%d", path, response.Code, expected)
 		}

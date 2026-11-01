@@ -12,7 +12,8 @@ import javax.net.ssl.HttpsURLConnection
 
 /** Blocking client: call from a worker thread. No pairing code or challenge is persisted. */
 class DeviceEnrollmentClient(context: Context) {
-    private val state = context.applicationContext.getSharedPreferences("enrollment", Context.MODE_PRIVATE)
+    private val appContext = context.applicationContext
+    private val state = appContext.getSharedPreferences("enrollment", Context.MODE_PRIVATE)
     private val identity = DeviceIdentity()
 
     fun enroll(server: String, code: String, displayName: String): String {
@@ -32,7 +33,17 @@ class DeviceEnrollmentClient(context: Context) {
         check(state.edit().putString("server", base.toString()).putString("deviceId", deviceId).commit()) {
             "Could not save enrollment state"
         }
+        // Enrollment is already durable if this best-effort registration is temporarily unavailable.
+        // Every authenticated sync retries it.
+        runCatching { bindRecoveryHandle() }
         return deviceId
+    }
+
+    fun bindRecoveryHandle(shouldStop: () -> Boolean = { false }) {
+        val base = ServerOrigin.require(checkNotNull(state.getString("server", null)), BuildConfig.SERVER_ORIGIN)
+        withAuthenticatedSession(shouldStop) { token ->
+            DeviceRecoveryClient(appContext).bindAuthenticated(base, token, shouldStop)
+        }
     }
 
     /** Returns an in-memory bearer token. Never persist or log this value. */
@@ -78,7 +89,7 @@ class DeviceEnrollmentClient(context: Context) {
             connection.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
             control.checkActive()
             check(connection.responseCode in 200..299) { "Enrollment request failed (${connection.responseCode})" }
-            val bytes = connection.inputStream.use { it.readNBytes(16 * 1024 + 1) }
+            val bytes = connection.inputStream.use { com.appcontrol.transport.BoundedInput.read(it, 16 * 1024 + 1) }
             control.checkActive()
             check(bytes.size <= 16 * 1024) { "Server response too large" }
             return JSONObject(String(bytes, Charsets.UTF_8))
